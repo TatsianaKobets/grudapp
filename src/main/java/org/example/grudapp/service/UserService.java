@@ -36,4 +36,54 @@ public class UserService {
     }
     return null;
   }
+
+  public void editUserProfile(User user) {
+    // обновить данные пользователя в базе данных
+    for (User existingUser : users) {
+      if (existingUser.getId() == user.getId()) {
+        existingUser.setName(user.getName());
+        existingUser.setEmail(user.getEmail());
+        existingUser.setPassword(user.getPassword());
+        break;
+      }
+    }
+  }
+
+  public User getUserById(int id) {
+    for (User user : users) {
+      if (user.getId() == id) {
+        return user;
+      }
+    }
+    return null;
+  }
+
+  public void deleteUser(String email) {
+    for (User user : users) {
+      if (user.getEmail() == email) {
+        users.remove(user);
+        break;
+      }
+    }
+  }
+
+  public void resetPassword(String email) {
+    String newPassword = generatePassword();
+    User user = getUserByEmail(email);
+    if (user != null) {
+      user.setPassword(newPassword);
+      System.out.println("Новый пароль: " + newPassword);
+    } else {
+      System.out.println("Пользователь с email " + email + " не найден");
+    }
+  }
+
+  public String generatePassword() {
+    String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    StringBuilder password = new StringBuilder();
+    for (int i = 0; i < 8; i++) {
+      password.append(characters.charAt((int) (Math.random() * characters.length())));
+    }
+    return password.toString();
+  }
 }

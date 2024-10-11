@@ -42,6 +42,11 @@ public class ConsoleInterface {
       System.out.println("8. Удалить отметку о выполнении");
       System.out.println("9. Отправить уведомление");
       System.out.println("10. Выход");
+      System.out.println("11. Изменить данные пользователя");
+      System.out.println("12. Удалить пользователя");
+      System.out.println("13. ToDo не реализовано Сбросить пароль через email");
+      System.out.println("14. Изменить email пользователя");
+      System.out.println("Выберите действие: ");
 
       int choice = scanner.nextInt();
 
@@ -76,6 +81,17 @@ public class ConsoleInterface {
         case 10:
           System.exit(0);
           break;
+        case 11:
+          editUserProfile(scanner);
+          break;
+        case 12:
+          deleteUser(scanner);
+          break;
+        case 13:
+          resetPassword(scanner);
+          break;
+        case 14:
+          changeUserEmail(scanner);
         default:
           System.out.println("Неправильный выбор");
       }
@@ -88,11 +104,13 @@ public class ConsoleInterface {
     System.out.println("Введите электронную почту:");
     String email = scanner.next();
     while (!email.contains("@")) {
-      System.out.println("Некорректная электронная почта. Пожалуйста, введите электронную почту с @:");
+      System.out.println(
+          "Некорректная электронная почта. Пожалуйста, введите электронную почту с @:");
       email = scanner.next();
     }
     if (userService.getUserByEmail(email) != null) {
-      System.out.println("Пользователь с таким email уже существует. Пожалуйста, введите другой email.");
+      System.out.println(
+          "Пользователь с таким email уже существует. Пожалуйста, введите другой email.");
       return;
     }
     System.out.println("Введите пароль:");
@@ -191,6 +209,59 @@ public class ConsoleInterface {
     System.out.println("Введите ID пользователя:");
     int userId = scanner.nextInt();
     notificationService.sendNotification(userId);
+  }
+
+  private void editUserProfile(Scanner scanner) {
+    System.out.println("Введите email пользователя:");
+    String email = scanner.next();
+    User user = userService.getUserByEmail(email);
+    if (user != null) {
+      System.out.println("Введите новое имя пользователя:");
+      String name = scanner.next();
+      System.out.println("Введите новый пароль:");
+      String password = scanner.next();
+      user.setName(name);
+      user.setPassword(password);
+      userService.editUserProfile(user);
+    } else {
+      System.out.println("Пользователь не найден");
+    }
+  }
+  private void changeUserEmail(Scanner scanner) {
+    System.out.println("Введите текущий email пользователя:");
+    String currentEmail = scanner.next();
+    User user = userService.getUserByEmail(currentEmail);
+    if (user != null) {
+      System.out.println("Введите новый email пользователя:");
+      String newEmail = scanner.next();
+      while (!newEmail.contains("@")) {
+        System.out.println(
+            "Некорректная электронная почта. Пожалуйста, введите электронную почту с @:");
+        newEmail = scanner.next();
+      }
+      while (userService.getUserByEmail(newEmail) != null) {
+        System.out.println("Пользователь с таким email уже существует. Пожалуйста, введите другой email.");
+        newEmail = scanner.next();
+      }
+      user.setEmail(newEmail);
+      userService.editUserProfile(user);
+      System.out.println("Email пользователя успешно изменен.");
+    } else {
+      System.out.println("Пользователь не найден");
+    }
+  }
+  private void deleteUser(Scanner scanner) {
+    System.out.println("Введите email пользователя:");
+    String email = scanner.next();
+    userService.deleteUser(email);
+    System.out.println("Пользователь с email " + email + " успешно удален");
+  }
+
+  //ToDo Реализация сброса пароля через email (опционально).
+  private void resetPassword(Scanner scanner) {
+    System.out.println("Введите email:");
+    String email = scanner.next();
+    userService.resetPassword(email);
   }
 
 }
