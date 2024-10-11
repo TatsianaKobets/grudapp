@@ -2,6 +2,7 @@ package org.example.grudapp.ui;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -61,7 +62,7 @@ public class ConsoleInterface {
           createHabit(scanner);
           break;
         case 4:
-          viewHabits();
+          viewHabits(scanner);
           break;
         case 5:
           deleteHabit(scanner);
@@ -96,7 +97,7 @@ public class ConsoleInterface {
           System.out.println("Неправильный выбор");
       }
     }
-  }// Методы для реализации функций приложения
+  }
 
   private void registerUser(Scanner scanner) {
     System.out.println("Введите имя пользователя:");
@@ -131,20 +132,96 @@ public class ConsoleInterface {
   }
 
   private void createHabit(Scanner scanner) {
-    System.out.println("Введите название привычки:");
-    String habitName = scanner.nextLine();
-    System.out.println("Введите описание привычки:");
-    String habitDescription = scanner.nextLine();
-    System.out.println("Введите частоту выполнения:");
-    String frequency = scanner.nextLine();
     User user = userService.getAuthenticatedUser();
-    habitService.createHabit(habitName, habitDescription, frequency, user);
+    if (user == null) {
+      System.out.println("Пожалуйста, авторизуйтесь перед созданием привычки.");
+      return;
+    }
+    System.out.println("Введите название привычки:");
+    String habitName = scanner.next();
+    System.out.println("Введите описание привычки:");
+    String habitDescription = scanner.next();
+    System.out.println("Введите частоту выполнения:");
+    System.out.println("1. Ежедневно");
+    System.out.println("2. Еженедельно");
+    int choice = scanner.nextInt();
+    String frequency = "";
+    switch (choice) {
+      case 1:
+        frequency = "daily";
+        break;
+      case 2:
+        frequency = "weekly";
+        break;
+      default:
+        System.out.println(
+            "Неправильный выбор. Частота выполнения будет установлена как ежедневно.");
+        frequency = "daily";
+    }
+
+    habitService.createHabit(habitName, habitDescription, frequency, user,
+        habitService.getHabits());
   }
 
-  private void viewHabits() {
-    List<Habit> habits = habitService.getHabits();
+  private void viewHabits(Scanner scanner) {
+    User user = userService.getAuthenticatedUser();
+    if (user == null) {
+      System.out.println("Пожалуйста, авторизуйтесь перед просмотром привычек.");
+      return;
+    }
+
+    System.out.println("Выберите фильтр:");
+    System.out.println("1. Фильтр по дате создания");
+    System.out.println("2. Фильтр по статусу");
+    System.out.println("3. Без фильтрации");
+    int choice = scanner.nextInt();
+
+    List<Habit> habits = habitService.getHabitsByUser(user);
+    if (habits.isEmpty()) {
+      System.out.println("У вас нет привычек.");
+      return;
+    }
+    List<Habit> filteredHabits = new ArrayList<>();
+
+    switch (choice) {
+      case 1:
+        System.out.println("Введите дату создания (например yyyy-MM-dd):");
+        String creationDateString = scanner.next();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date creationDate = null;
+        try {
+          creationDate = sdf.parse(creationDateString);
+        } catch (ParseException e) {
+          System.out.println("Ошибка: некорректная дата. " + e.getMessage());
+          return;
+        }
+        for (Habit habit : habits) {
+          if (habit.getCreationDate().compareTo(creationDate) == 0) {
+            filteredHabits.add(habit);
+          }
+        }
+        habits = filteredHabits;
+        break;
+      case 2:
+        System.out.println("Введите статус (true/false):");
+        boolean status = scanner.nextBoolean();
+        filteredHabits.clear();
+        for (Habit habit : habits) {
+          if (habit.isCompleted() == status) {
+            filteredHabits.add(habit);
+          }
+        }
+        habits = filteredHabits;
+        break;
+      case 3:
+        break;
+      default:
+        System.out.println("Неправильный выбор. Просмотр привычек без фильтрации.");
+    }
+
+    System.out.println("Ваши привычки:");
     for (Habit habit : habits) {
-      System.out.println(habit.getName() + ": " + habit.getDescription());
+      System.out.println(habit.getId() + ". " + habit.getName() + ": " + habit.getDescription());
     }
   }
 
@@ -158,13 +235,14 @@ public class ConsoleInterface {
     System.out.println("Введите ID привычки:");
     int habitId = scanner.nextInt();
     scanner.nextLine(); // Пропускаем остаток строки
-    System.out.println("Введите дату выполнения ( например yyyy-MM-dd):");
-    // String logDate = scanner.next();
-    String logDateString = scanner.nextLine();
+
+    System.out.println("Введите дату выполнения (например yyyy-MM-dd):");
+    String logDateString = scanner.nextLine(); // Читаем дату как строку
+
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     Date logDate = null;
     try {
-      logDate = sdf.parse(logDateString);
+      logDate = sdf.parse(logDateString); // Парсим строку в дату
     } catch (ParseException e) {
       System.out.println("Ошибка: некорректная дата. " + e.getMessage());
       return;
@@ -189,6 +267,10 @@ public class ConsoleInterface {
   }
 
   private void viewLogs() {
+   if (logService.getLogs().isEmpty()) {
+     System.out.println("У вас нет отметок.");
+     return;
+   }
     List<Log> logs = logService.getLogs();
     for (Log log : logs) {
       /* System.out.println("Дата выполнения: " + log.getLogDate());
@@ -227,6 +309,7 @@ public class ConsoleInterface {
       System.out.println("Пользователь не найден");
     }
   }
+
   private void changeUserEmail(Scanner scanner) {
     System.out.println("Введите текущий email пользователя:");
     String currentEmail = scanner.next();
@@ -240,7 +323,8 @@ public class ConsoleInterface {
         newEmail = scanner.next();
       }
       while (userService.getUserByEmail(newEmail) != null) {
-        System.out.println("Пользователь с таким email уже существует. Пожалуйста, введите другой email.");
+        System.out.println(
+            "Пользователь с таким email уже существует. Пожалуйста, введите другой email.");
         newEmail = scanner.next();
       }
       user.setEmail(newEmail);
@@ -250,6 +334,7 @@ public class ConsoleInterface {
       System.out.println("Пользователь не найден");
     }
   }
+
   private void deleteUser(Scanner scanner) {
     System.out.println("Введите email пользователя:");
     String email = scanner.next();
