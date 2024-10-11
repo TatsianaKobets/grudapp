@@ -41,7 +41,7 @@ public class ConsoleInterface {
       System.out.println("6. Создать отметку о выполнении");
       System.out.println("7. Просмотреть отметки о выполнении");
       System.out.println("8. Удалить отметку о выполнении");
-      System.out.println("9. Отправить уведомление");
+      System.out.println("9. ToDo не реализовано Отправить уведомление");
       System.out.println("10. Выход");
       System.out.println("11. Изменить данные пользователя");
       System.out.println("12. Удалить пользователя");
