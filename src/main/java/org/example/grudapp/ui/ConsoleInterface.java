@@ -47,6 +47,7 @@ public class ConsoleInterface {
       System.out.println("12. Удалить пользователя");
       System.out.println("13. ToDo не реализовано Сбросить пароль через email");
       System.out.println("14. Изменить email пользователя");
+      System.out.println("15 Администрирование");
       System.out.println("Выберите действие: ");
 
       int choice = scanner.nextInt();
@@ -419,6 +420,68 @@ public class ConsoleInterface {
       for (Log log : logs) {
         System.out.println("Дата: " + log.getLogDate() + ", Выполнено: " + (log.isCompleted() ? "Да" : "Нет"));
       }
+    }
+  }
+  private void adminPanel(Scanner scanner) {
+    System.out.println("Администрирование:");
+    System.out.println("1. Список пользователей");
+    System.out.println("2. Список привычек");
+    System.out.println("3. Блокировка пользователя");
+    System.out.println("4. Удаление пользователя");
+    int choice = scanner.nextInt();
+    switch (choice) {
+      case 1:
+        viewUsers();
+        break;
+      case 2:
+        viewHabitsForAdmin();
+        break;
+      case 3:
+        blockUser(scanner);
+        break;
+      case 4:
+        deleteUser(scanner);
+        break;
+      default:
+        System.out.println("Неправильный выбор");
+    }
+  }
+  private void viewUsers() {
+    List<User> users = userService.getUsers();
+    for (User user : users) {
+      System.out.println("ID: " + user.getId() + ", Email: " + user.getEmail() + ", Имя: " + user.getName());
+    }
+  }
+
+  private void viewHabitsForAdmin() {
+    List<Habit> habits = habitService.getHabits();
+    for (Habit habit : habits) {
+      System.out.println("ID: " + habit.getId() + ", Название: " + habit.getName() + ", Описание: " + habit.getDescription());
+    }
+  }
+
+  private void blockUser(Scanner scanner) {
+    System.out.println("Введите ID пользователя:");
+    int userId = scanner.nextInt();
+    User user = userService.getUserById(userId);
+    if (user != null) {
+      user.setBlocked(true);
+      userService.editUserProfile(user);
+      System.out.println("Пользователь заблокирован");
+    } else {
+      System.out.println("Пользователь не найден");
+    }
+  }
+
+  private void adminDeletedUser(Scanner scanner) {
+    System.out.println("Введите ID пользователя:");
+    int userId = scanner.nextInt();
+    User user = userService.getUserById(userId);
+    if (user != null) {
+      userService.deleteUser(user.getEmail());
+      System.out.println("Пользователь удален");
+    } else {
+      System.out.println("Пользователь не найден");
     }
   }
 }

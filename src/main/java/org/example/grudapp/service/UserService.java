@@ -7,6 +7,11 @@ import org.example.grudapp.model.User;
 public class UserService {
 
   private List<User> users = new ArrayList<>();
+
+  public List<User> getUsers() {
+    return users;
+  }
+
   private User authenticatedUser;
 
   public User getAuthenticatedUser() {

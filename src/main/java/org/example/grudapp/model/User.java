@@ -11,6 +11,13 @@ public class User {
   private String name;
   private List<Habit> habits;
   private List<Log> logs;
+  private boolean blocked;
+
+  public boolean isBlocked() {
+    return blocked;
+  }public void setBlocked(boolean blocked) {
+    this.blocked = blocked;
+  }
 
   public User(int id, String email, String password, String name) {
     this.id = id;
