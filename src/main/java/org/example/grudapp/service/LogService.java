@@ -7,20 +7,46 @@ import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.Log;
 import org.example.grudapp.model.User;
 
+/**
+ * Provides services for managing logs.
+ */
 public class LogService {
 
+  /**
+   * List of all logs.
+   */
   private List<Log> logs = new ArrayList<>();
 
+  /**
+   * Returns the list of all logs.
+   *
+   * @return the list of logs
+   */
   public List<Log> getLogs() {
     return logs;
   }
 
+  /**
+   * Creates a new log.
+   *
+   * @param logDate   the date of the log
+   * @param completed indicates whether the log is completed
+   * @param habit     the habit associated with the log
+   * @param user      the user who created the log
+   */
   public void createLog(Date logDate, boolean completed, Habit habit, User user) {
     Log log = new Log(logs.size() + 1, logDate, completed, habit, user);
     logs.add(log);
     habit.getLogs().add(log);
   }
 
+  /**
+   * Updates an existing log.
+   *
+   * @param logId     the ID of the log to update
+   * @param logDate   the new date of the log
+   * @param completed the new completion status of the log
+   */
   public void updateLog(int logId, Date logDate, boolean completed) {
     for (Log log : logs) {
       if (log.getId() == logId) {
@@ -31,6 +57,11 @@ public class LogService {
     }
   }
 
+  /**
+   * Deletes an existing log.
+   *
+   * @param logId the ID of the log to delete
+   */
   public void deleteLog(int logId) {
     for (Log log : logs) {
       if (log.getId() == logId) {
@@ -39,6 +70,13 @@ public class LogService {
       }
     }
   }
+
+  /**
+   * Calculates the longest streak of completed logs for a given habit.
+   *
+   * @param habit the habit to calculate the streak for
+   * @return the longest streak of completed logs
+   */
   public int getStreak(Habit habit) {
     int streak = 0;
     int maxStreak = 0;
@@ -50,7 +88,8 @@ public class LogService {
     for (Log log : logs) {
       if (log.isCompleted()) {
         if (previousLogDate != null) {
-          long diffInDays = (log.getLogDate().getTime() - previousLogDate.getTime()) / (1000 * 60 * 60 * 24);
+          long diffInDays =
+              (log.getLogDate().getTime() - previousLogDate.getTime()) / (1000 * 60 * 60 * 24);
           if (diffInDays == 1) {
             streak++;
           } else {
@@ -66,6 +105,15 @@ public class LogService {
 
     return maxStreak;
   }
+
+  /**
+   * Calculates the success percentage of a habit within a given date range.
+   *
+   * @param habit     the habit to calculate the success percentage for
+   * @param startDate the start date of the range
+   * @param endDate   the end date of the range
+   * @return the success percentage as a decimal value
+   */
   public double getSuccessPercentage(Habit habit, Date startDate, Date endDate) {
     List<Log> logs = new ArrayList<>(habit.getLogs());
     logs.sort((log1, log2) -> log1.getLogDate().compareTo(log2.getLogDate()));
@@ -88,6 +136,7 @@ public class LogService {
 
     return (double) successfulLogs / totalLogs * 100;
   }
+
   public List<Log> getLogsByHabit(Habit habit) {
     List<Log> logs = new ArrayList<>();
     for (Log log : logs) {

@@ -4,25 +4,58 @@ import java.util.ArrayList;
 import java.util.List;
 import org.example.grudapp.model.User;
 
+/**
+ * Provides services for managing users.
+ */
 public class UserService {
 
+  /**
+   * List of all users.
+   */
   private List<User> users = new ArrayList<>();
 
+  /**
+   * Returns the list of all users.
+   *
+   * @return the list of users
+   */
   public List<User> getUsers() {
     return users;
   }
 
+  /**
+   * The currently authenticated user.
+   */
   private User authenticatedUser;
 
+  /**
+   * Returns the currently authenticated user.
+   *
+   * @return the authenticated user
+   */
   public User getAuthenticatedUser() {
     return authenticatedUser;
   }
 
+  /**
+   * Registers a new user.
+   *
+   * @param email    the email address of the user
+   * @param password the password of the user
+   * @param name     the name of the user
+   */
   public void registerUser(String email, String password, String name) {
     User user = new User(users.size() + 1, email, password, name);
     users.add(user);
   }
 
+  /**
+   * Authenticates a user.
+   *
+   * @param email    the email address of the user
+   * @param password the password of the user
+   * @return the authenticated user, or null if authentication fails
+   */
   public User authenticateUser(String email, String password) {
     for (User user : users) {
       if (user.getEmail().equals(email) && user.getPassword().equals(password)) {
@@ -33,6 +66,12 @@ public class UserService {
     return null;
   }
 
+  /**
+   * Returns a user by their email address.
+   *
+   * @param email the email address of the user
+   * @return the user, or null if not found
+   */
   public User getUserByEmail(String email) {
     for (User user : users) {
       if (user.getEmail().equals(email)) {
@@ -42,6 +81,11 @@ public class UserService {
     return null;
   }
 
+  /**
+   * Edits a user's profile.
+   *
+   * @param user the user to edit
+   */
   public void editUserProfile(User user) {
     // обновить данные пользователя в базе данных
     for (User existingUser : users) {
@@ -54,6 +98,12 @@ public class UserService {
     }
   }
 
+  /**
+   * Returns a user by their ID.
+   *
+   * @param id the ID of the user
+   * @return the user, or null if not found
+   */
   public User getUserById(int id) {
     for (User user : users) {
       if (user.getId() == id) {
@@ -63,6 +113,11 @@ public class UserService {
     return null;
   }
 
+  /**
+   * Deletes a user by their email address.
+   *
+   * @param email the email address of the user to delete
+   */
   public void deleteUser(String email) {
     for (User user : users) {
       if (user.getEmail() == email) {
@@ -72,6 +127,11 @@ public class UserService {
     }
   }
 
+  /**
+   * Resets a user's password.
+   *
+   * @param email the email address of the user
+   */
   public void resetPassword(String email) {
     String newPassword = generatePassword();
     User user = getUserByEmail(email);
@@ -83,6 +143,11 @@ public class UserService {
     }
   }
 
+  /**
+   * Generates a random password.
+   *
+   * @return the generated password
+   */
   public String generatePassword() {
     String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     StringBuilder password = new StringBuilder();

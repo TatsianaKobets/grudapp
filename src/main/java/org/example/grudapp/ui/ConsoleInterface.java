@@ -14,6 +14,11 @@ import org.example.grudapp.service.LogService;
 import org.example.grudapp.service.NotificationService;
 import org.example.grudapp.service.UserService;
 
+/**
+ * ConsoleInterface is a class that provides a text-based interface for users to interact with the
+ * application. It allows users to perform various actions such as registration, authentication,
+ * habit creation, log creation, and more.
+ */
 public class ConsoleInterface {
 
   private UserService userService;
@@ -21,6 +26,14 @@ public class ConsoleInterface {
   private LogService logService;
   private NotificationService notificationService;
 
+  /**
+   * Constructor for ConsoleInterface.
+   *
+   * @param userService         UserService instance
+   * @param habitService        HabitService instance
+   * @param logService          LogService instance
+   * @param notificationService NotificationService instance
+   */
   public ConsoleInterface(UserService userService, HabitService habitService, LogService logService,
       NotificationService notificationService) {
     this.userService = userService;
@@ -29,25 +42,29 @@ public class ConsoleInterface {
     this.notificationService = notificationService;
   }
 
+  /**
+   * Runs the console interface.
+   */
   public void run() {
     Scanner scanner = new Scanner(System.in);
 
     while (true) {
       System.out.println("1. Регистрация");
       System.out.println("2. Авторизация");
-      System.out.println("3. Создать привычку");
-      System.out.println("4. Просмотреть привычки");
-      System.out.println("5. Удалить привычку");
-      System.out.println("6. Создать отметку о выполнении");
-      System.out.println("7. Просмотреть отметки о выполнении");
-      System.out.println("8. Удалить отметку о выполнении");
-      System.out.println("9. ToDo не реализовано Отправить уведомление");
-      System.out.println("10. Выход");
-      System.out.println("11. Изменить данные пользователя");
-      System.out.println("12. Удалить пользователя");
-      System.out.println("13. ToDo не реализовано Сбросить пароль через email");
-      System.out.println("14. Изменить email пользователя");
-      System.out.println("15 Администрирование");
+      System.out.println("3. Изменить данные пользователя");
+      System.out.println("4. Изменить email пользователя");
+      System.out.println("5. Удалить пользователя");
+      System.out.println("6. Выход");
+      System.out.println("7. Создать привычку");
+      System.out.println("8. Просмотреть привычки");
+      System.out.println("9. Удалить привычку");
+      System.out.println("10. Создать отметку о выполнении");
+      System.out.println("11. Просмотреть отметки о выполнении");
+      System.out.println("12. Удалить отметку о выполнении");
+      System.out.println("13. ToDo не реализовано Отправить уведомление");
+      System.out.println("14. ToDo не реализовано Сбросить пароль через email");
+      System.out.println("15. Администрирование");
+      System.out.println("16. просмотреть статистику");
       System.out.println("Выберите действие: ");
 
       int choice = scanner.nextInt();
@@ -60,46 +77,58 @@ public class ConsoleInterface {
           authenticateUser(scanner);
           break;
         case 3:
-          createHabit(scanner);
-          break;
-        case 4:
-          viewHabits(scanner);
-          break;
-        case 5:
-          deleteHabit(scanner);
-          break;
-        case 6:
-          createLog(scanner);
-          break;
-        case 7:
-          viewLogs();
-          break;
-        case 8:
-          deleteLog(scanner);
-          break;
-        case 9:
-          sendNotification(scanner);
-          break;
-        case 10:
-          System.exit(0);
-          break;
-        case 11:
           editUserProfile(scanner);
           break;
-        case 12:
+        case 4:
+          changeUserEmail(scanner);
+          break;
+        case 5:
           deleteUser(scanner);
           break;
+        case 6:
+          System.exit(0);
+          break;
+        case 7:
+          createHabit(scanner);
+          break;
+        case 8:
+          viewHabits(scanner);
+          break;
+        case 9:
+          deleteHabit(scanner);
+          break;
+        case 10:
+          createLog(scanner);
+          break;
+        case 11:
+          viewLogs();
+          break;
+        case 12:
+          deleteLog(scanner);
+          break;
         case 13:
-          resetPassword(scanner);
+          sendNotification(scanner);
           break;
         case 14:
-          changeUserEmail(scanner);
+          resetPassword(scanner);
+          break;
+        case 15:
+          adminPanel(scanner);
+          break;
+        case 16:
+          viewStatistics(scanner);
+          break;
         default:
           System.out.println("Неправильный выбор");
       }
     }
   }
 
+  /**
+   * Registers a new user.
+   *
+   * @param scanner Scanner instance
+   */
   private void registerUser(Scanner scanner) {
     System.out.println("Введите имя пользователя:");
     String username = scanner.next();
@@ -120,6 +149,11 @@ public class ConsoleInterface {
     userService.registerUser(email, password, username);
   }
 
+  /**
+   * Authenticates a user.
+   *
+   * @param scanner Scanner instance
+   */
   private void authenticateUser(Scanner scanner) {
     System.out.println("Введите электронную почту:");
     String email = scanner.next();
@@ -132,6 +166,75 @@ public class ConsoleInterface {
     }
   }
 
+  /**
+   * Edits a user's profile.
+   *
+   * @param scanner Scanner instance
+   */
+  private void editUserProfile(Scanner scanner) {
+    System.out.println("Введите email пользователя:");
+    String email = scanner.next();
+    User user = userService.getUserByEmail(email);
+    if (user != null) {
+      System.out.println("Введите новое имя пользователя:");
+      String name = scanner.next();
+      System.out.println("Введите новый пароль:");
+      String password = scanner.next();
+      user.setName(name);
+      user.setPassword(password);
+      userService.editUserProfile(user);
+    } else {
+      System.out.println("Пользователь не найден");
+    }
+  }
+
+  /**
+   * Changes a user's email.
+   *
+   * @param scanner Scanner instance
+   */
+  private void changeUserEmail(Scanner scanner) {
+    System.out.println("Введите текущий email пользователя:");
+    String currentEmail = scanner.next();
+    User user = userService.getUserByEmail(currentEmail);
+    if (user != null) {
+      System.out.println("Введите новый email пользователя:");
+      String newEmail = scanner.next();
+      while (!newEmail.contains("@")) {
+        System.out.println(
+            "Некорректная электронная почта. Пожалуйста, введите электронную почту с @:");
+        newEmail = scanner.next();
+      }
+      while (userService.getUserByEmail(newEmail) != null) {
+        System.out.println(
+            "Пользователь с таким email уже существует. Пожалуйста, введите другой email.");
+        newEmail = scanner.next();
+      }
+      user.setEmail(newEmail);
+      userService.editUserProfile(user);
+      System.out.println("Email пользователя успешно изменен.");
+    } else {
+      System.out.println("Пользователь не найден");
+    }
+  }
+
+  /**
+   * Deletes a user.
+   *
+   * @param scanner Scanner instance
+   */
+  private void deleteUser(Scanner scanner) {
+    System.out.println("Введите email пользователя:");
+    String email = scanner.next();
+    userService.deleteUser(email);
+    System.out.println("Пользователь с email " + email + " успешно удален");
+  }
+
+  /**
+   * Creates a new habit.
+   *
+   * @param scanner Scanner instance
+   */
   private void createHabit(Scanner scanner) {
     User user = userService.getAuthenticatedUser();
     if (user == null) {
@@ -164,6 +267,11 @@ public class ConsoleInterface {
         habitService.getHabits());
   }
 
+  /**
+   * Views habits.
+   *
+   * @param scanner Scanner instance
+   */
   private void viewHabits(Scanner scanner) {
     User user = userService.getAuthenticatedUser();
     if (user == null) {
@@ -226,12 +334,22 @@ public class ConsoleInterface {
     }
   }
 
+  /**
+   * Deletes a habit.
+   *
+   * @param scanner Scanner instance
+   */
   private void deleteHabit(Scanner scanner) {
     System.out.println("Введите ID привычки:");
     int habitId = scanner.nextInt();
     habitService.deleteHabit(habitId);
   }
 
+  /**
+   * Creates a new log.
+   *
+   * @param scanner Scanner instance
+   */
   private void createLog(Scanner scanner) {
     System.out.println("Введите ID привычки:");
     int habitId = scanner.nextInt();
@@ -267,11 +385,14 @@ public class ConsoleInterface {
     }
   }
 
+  /**
+   * Views logs.
+   */
   private void viewLogs() {
-   if (logService.getLogs().isEmpty()) {
-     System.out.println("У вас нет отметок.");
-     return;
-   }
+    if (logService.getLogs().isEmpty()) {
+      System.out.println("У вас нет отметок.");
+      return;
+    }
     List<Log> logs = logService.getLogs();
     for (Log log : logs) {
       /* System.out.println("Дата выполнения: " + log.getLogDate());
@@ -282,73 +403,45 @@ public class ConsoleInterface {
     }
   }
 
+  /**
+   * Deletes a log.
+   *
+   * @param scanner Scanner instance
+   */
   private void deleteLog(Scanner scanner) {
     System.out.println("Введите ID отметки:");
     int logId = scanner.nextInt();
     logService.deleteLog(logId);
   }
 
+  /**
+   * Sends a notification.
+   *
+   * @param scanner Scanner instance
+   */
   private void sendNotification(Scanner scanner) {
     System.out.println("Введите ID пользователя:");
     int userId = scanner.nextInt();
     notificationService.sendNotification(userId);
   }
 
-  private void editUserProfile(Scanner scanner) {
-    System.out.println("Введите email пользователя:");
-    String email = scanner.next();
-    User user = userService.getUserByEmail(email);
-    if (user != null) {
-      System.out.println("Введите новое имя пользователя:");
-      String name = scanner.next();
-      System.out.println("Введите новый пароль:");
-      String password = scanner.next();
-      user.setName(name);
-      user.setPassword(password);
-      userService.editUserProfile(user);
-    } else {
-      System.out.println("Пользователь не найден");
-    }
-  }
-
-  private void changeUserEmail(Scanner scanner) {
-    System.out.println("Введите текущий email пользователя:");
-    String currentEmail = scanner.next();
-    User user = userService.getUserByEmail(currentEmail);
-    if (user != null) {
-      System.out.println("Введите новый email пользователя:");
-      String newEmail = scanner.next();
-      while (!newEmail.contains("@")) {
-        System.out.println(
-            "Некорректная электронная почта. Пожалуйста, введите электронную почту с @:");
-        newEmail = scanner.next();
-      }
-      while (userService.getUserByEmail(newEmail) != null) {
-        System.out.println(
-            "Пользователь с таким email уже существует. Пожалуйста, введите другой email.");
-        newEmail = scanner.next();
-      }
-      user.setEmail(newEmail);
-      userService.editUserProfile(user);
-      System.out.println("Email пользователя успешно изменен.");
-    } else {
-      System.out.println("Пользователь не найден");
-    }
-  }
-
-  private void deleteUser(Scanner scanner) {
-    System.out.println("Введите email пользователя:");
-    String email = scanner.next();
-    userService.deleteUser(email);
-    System.out.println("Пользователь с email " + email + " успешно удален");
-  }
-
+  /**
+   * Resets a user's password.
+   *
+   * @param scanner Scanner instance
+   */
   //ToDo Реализация сброса пароля через email (опционально).
   private void resetPassword(Scanner scanner) {
     System.out.println("Введите email:");
     String email = scanner.next();
     userService.resetPassword(email);
   }
+
+  /**
+   * Views statistics.
+   *
+   * @param scanner Scanner instance
+   */
   private void viewStatistics(Scanner scanner) {
     User user = userService.getAuthenticatedUser();
     if (user == null) {
@@ -377,6 +470,11 @@ public class ConsoleInterface {
     }
   }
 
+  /**
+   * Views the current streak for each habit.
+   *
+   * @param scanner Scanner instance
+   */
   private void viewStreak(Scanner scanner) {
     User user = userService.getAuthenticatedUser();
     List<Habit> habits = habitService.getHabitsByUser(user);
@@ -386,6 +484,11 @@ public class ConsoleInterface {
     }
   }
 
+  /**
+   * Views the success percentage for each habit.
+   *
+   * @param scanner Scanner instance
+   */
   private void viewSuccessPercentage(Scanner scanner) {
     User user = userService.getAuthenticatedUser();
     System.out.println("Введите начало периода (yyyy-MM-dd):");
@@ -407,10 +510,17 @@ public class ConsoleInterface {
     List<Habit> habits = habitService.getHabitsByUser(user);
     for (Habit habit : habits) {
       double successPercentage = logService.getSuccessPercentage(habit, startDate, endDate);
-      System.out.println("Привычка: " + habit.getName() + ", Процент успешного выполнения: " + successPercentage + "%");
+      System.out.println(
+          "Привычка: " + habit.getName() + ", Процент успешного выполнения: " + successPercentage
+              + "%");
     }
   }
 
+  /**
+   * Views the progress report for each habit.
+   *
+   * @param scanner Scanner instance
+   */
   private void viewProgressReport(Scanner scanner) {
     User user = userService.getAuthenticatedUser();
     List<Habit> habits = habitService.getHabitsByUser(user);
@@ -418,10 +528,17 @@ public class ConsoleInterface {
       List<Log> logs = logService.getLogsByHabit(habit);
       System.out.println("Привычка: " + habit.getName());
       for (Log log : logs) {
-        System.out.println("Дата: " + log.getLogDate() + ", Выполнено: " + (log.isCompleted() ? "Да" : "Нет"));
+        System.out.println(
+            "Дата: " + log.getLogDate() + ", Выполнено: " + (log.isCompleted() ? "Да" : "Нет"));
       }
     }
   }
+
+  /**
+   * Admin panel.
+   *
+   * @param scanner Scanner instance
+   */
   private void adminPanel(Scanner scanner) {
     System.out.println("Администрирование:");
     System.out.println("1. Список пользователей");
@@ -434,29 +551,40 @@ public class ConsoleInterface {
         viewUsers();
         break;
       case 2:
-        viewHabitsForAdmin();
+        viewHabitsForAdmin(scanner);
         break;
       case 3:
         blockUser(scanner);
         break;
       case 4:
-        deleteUser(scanner);
+        adminDeletedUser(scanner);
         break;
       default:
         System.out.println("Неправильный выбор");
     }
   }
+
+  /**
+   * Views users.
+   */
   private void viewUsers() {
     List<User> users = userService.getUsers();
     for (User user : users) {
-      System.out.println("ID: " + user.getId() + ", Email: " + user.getEmail() + ", Имя: " + user.getName());
+      System.out.println(
+          "ID: " + user.getId() + ", Email: " + user.getEmail() + ", Имя: " + user.getName());
     }
   }
 
-  private void viewHabitsForAdmin() {
+  /**
+   * Views habits for admin.
+   *
+   * @param scanner Scanner instance
+   */
+  private void viewHabitsForAdmin(Scanner scanner) {
     List<Habit> habits = habitService.getHabits();
     for (Habit habit : habits) {
-      System.out.println("ID: " + habit.getId() + ", Название: " + habit.getName() + ", Описание: " + habit.getDescription());
+      System.out.println("ID: " + habit.getId() + ", Название: " + habit.getName() + ", Описание: "
+          + habit.getDescription());
     }
   }
 

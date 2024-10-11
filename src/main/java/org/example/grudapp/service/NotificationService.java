@@ -8,23 +8,55 @@ import org.example.grudapp.model.Notification;
 import org.example.grudapp.model.User;
 import org.example.grudapp.ui.EmailNotificationService;
 
+/**
+ * Provides services for managing notifications.
+ */
 public class NotificationService {
+
+  /**
+   * Email notification service used to send notifications.
+   */
   private EmailNotificationService emailNotificationService;
+  /**
+   * List of all notifications.
+   */
   private List<Notification> notifications = new ArrayList<>();
 
-  public void createNotification(Date notificationDate, boolean sent, User user, Habit habit) {
-    Notification notification = new Notification(notifications.size() + 1, notificationDate, sent, user, habit);
-    notifications.add(notification);
-  }
+  /**
+   * Creates a new notification service with the given email notification service.
+   *
+   * @param emailNotificationService the email notification service to use
+   */
   public NotificationService(EmailNotificationService emailNotificationService) {
     this.emailNotificationService = emailNotificationService;
   }
+
+  /**
+   * Creates a new notification.
+   *
+   * @param notificationDate the date of the notification
+   * @param sent             indicates whether the notification has been sent
+   * @param user             the user who will receive the notification
+   * @param habit            the habit associated with the notification
+   */
+  public void createNotification(Date notificationDate, boolean sent, User user, Habit habit) {
+    Notification notification = new Notification(notifications.size() + 1, notificationDate, sent,
+        user, habit);
+    notifications.add(notification);
+  }
+
+  /**
+   * Sends a notification to the user.
+   *
+   * @param notificationId the ID of the notification to send
+   */
   public void sendNotification(int notificationId) {
     for (Notification notification : notifications) {
       if (notification.getId() == notificationId) {
         notification.setSent(true);
         // Отправка уведомления через email или push-уведомления
-        emailNotificationService.sendNotification(notification.getUser().getEmail(), "Уведомление", "Выполняйте свою привычку!");
+        emailNotificationService.sendNotification(notification.getUser().getEmail(), "Уведомление",
+            "Выполняйте свою привычку!");
         return;
       }
     }

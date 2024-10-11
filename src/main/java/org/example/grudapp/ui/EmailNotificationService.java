@@ -10,12 +10,36 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+/**
+ * Provides services for sending email notifications.
+ */
 public class EmailNotificationService {
 
+  /**
+   * SMTP host for sending email.
+   */
   private String smtpHost;
+  /**
+   * SMTP port for sending email.
+   */
   private String smtpPort;
+  /**
+   * Email address of the sender.
+   */
   private String fromEmail;
+  /**
+   * Password of the sender.
+   */
   private String fromPassword;
+
+  /**
+   * Creates a new email notification service.
+   *
+   * @param smtpHost     the SMTP host
+   * @param smtpPort     the SMTP port
+   * @param fromEmail    the email address of the sender
+   * @param fromPassword the password of the sender
+   */
 
   public EmailNotificationService(String smtpHost, String smtpPort, String fromEmail,
       String fromPassword) {
@@ -25,6 +49,13 @@ public class EmailNotificationService {
     this.fromPassword = fromPassword;
   }
 
+  /**
+   * Sends an email notification.
+   *
+   * @param toEmail the email address of the recipient
+   * @param subject the subject of the email
+   * @param body    the body of the email
+   */
   public void sendNotification(String toEmail, String subject, String body) {
     Properties props = new Properties();
     props.put("mail.smtp.host", smtpHost);
