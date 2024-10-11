@@ -136,14 +136,16 @@ public class LogService {
 
     return (double) successfulLogs / totalLogs * 100;
   }
-
+  public void addLog(Log log) {
+    logs.add(log);
+  }
   public List<Log> getLogsByHabit(Habit habit) {
-    List<Log> logs = new ArrayList<>();
+    List<Log> logsByHabit = new ArrayList<>();
     for (Log log : logs) {
       if (log.getHabit().equals(habit)) {
-        logs.add(log);
+        logsByHabit.add(log);
       }
     }
-    return logs;
+    return logsByHabit;
   }
 }

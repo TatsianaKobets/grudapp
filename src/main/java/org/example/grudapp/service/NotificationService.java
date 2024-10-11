@@ -45,6 +45,14 @@ public class NotificationService {
     notifications.add(notification);
   }
 
+  public int getNotificationCount() {
+    return notifications.size();
+  }
+
+  public void addNotification(Notification notification) {
+    notifications.add(notification);
+  }
+
   /**
    * Sends a notification to the user.
    *

@@ -89,7 +89,14 @@ public class Habit {
   public String getDescription() {
     return description;
   }
-
+  /**
+   * Returns the frequency of the habit.
+   *
+   * @return the frequency
+   */
+  public String getFrequency() {
+    return frequency;
+  }
   public void setDescription(String description) {
     this.description = description;
   }

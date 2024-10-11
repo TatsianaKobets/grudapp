@@ -25,6 +25,10 @@ public class HabitService {
     return habits;
   }
 
+  public void setHabits(List<Habit> habits) {
+    this.habits = habits;
+  }
+
   /**
    * Creates a new habit.
    *
