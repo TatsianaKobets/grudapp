@@ -39,4 +39,62 @@ public class LogService {
       }
     }
   }
+  public int getStreak(Habit habit) {
+    int streak = 0;
+    int maxStreak = 0;
+    Date previousLogDate = null;
+
+    List<Log> logs = new ArrayList<>(habit.getLogs());
+    logs.sort((log1, log2) -> log1.getLogDate().compareTo(log2.getLogDate()));
+
+    for (Log log : logs) {
+      if (log.isCompleted()) {
+        if (previousLogDate != null) {
+          long diffInDays = (log.getLogDate().getTime() - previousLogDate.getTime()) / (1000 * 60 * 60 * 24);
+          if (diffInDays == 1) {
+            streak++;
+          } else {
+            streak = 1;
+          }
+        } else {
+          streak = 1;
+        }
+        maxStreak = Math.max(maxStreak, streak);
+      }
+      previousLogDate = log.getLogDate();
+    }
+
+    return maxStreak;
+  }
+  public double getSuccessPercentage(Habit habit, Date startDate, Date endDate) {
+    List<Log> logs = new ArrayList<>(habit.getLogs());
+    logs.sort((log1, log2) -> log1.getLogDate().compareTo(log2.getLogDate()));
+
+    int totalLogs = 0;
+    int successfulLogs = 0;
+
+    for (Log log : logs) {
+      if (log.getLogDate().after(startDate) && log.getLogDate().before(endDate)) {
+        totalLogs++;
+        if (log.isCompleted()) {
+          successfulLogs++;
+        }
+      }
+    }
+
+    if (totalLogs == 0) {
+      return 0.0;
+    }
+
+    return (double) successfulLogs / totalLogs * 100;
+  }
+  public List<Log> getLogsByHabit(Habit habit) {
+    List<Log> logs = new ArrayList<>();
+    for (Log log : logs) {
+      if (log.getHabit().equals(habit)) {
+        logs.add(log);
+      }
+    }
+    return logs;
+  }
 }
