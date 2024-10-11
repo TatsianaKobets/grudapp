@@ -1,5 +1,7 @@
 package org.example.grudapp.ui;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -85,9 +87,17 @@ public class ConsoleInterface {
     String username = scanner.next();
     System.out.println("Введите электронную почту:");
     String email = scanner.next();
+    while (!email.contains("@")) {
+      System.out.println("Некорректная электронная почта. Пожалуйста, введите электронную почту с @:");
+      email = scanner.next();
+    }
+    if (userService.getUserByEmail(email) != null) {
+      System.out.println("Пользователь с таким email уже существует. Пожалуйста, введите другой email.");
+      return;
+    }
     System.out.println("Введите пароль:");
     String password = scanner.next();
-    userService.registerUser(username, email, password);
+    userService.registerUser(email, password, username);
   }
 
   private void authenticateUser(Scanner scanner) {
@@ -109,7 +119,7 @@ public class ConsoleInterface {
     String habitDescription = scanner.nextLine();
     System.out.println("Введите частоту выполнения:");
     String frequency = scanner.nextLine();
-    User user = userService.getAuthenticatedUser(); // получить текущего авторизованного пользователя
+    User user = userService.getAuthenticatedUser();
     habitService.createHabit(habitName, habitDescription, frequency, user);
   }
 
@@ -129,8 +139,18 @@ public class ConsoleInterface {
   private void createLog(Scanner scanner) {
     System.out.println("Введите ID привычки:");
     int habitId = scanner.nextInt();
-    System.out.println("Введите дату выполнения:");
-    String logDate = scanner.next();
+    scanner.nextLine(); // Пропускаем остаток строки
+    System.out.println("Введите дату выполнения ( например yyyy-MM-dd):");
+    // String logDate = scanner.next();
+    String logDateString = scanner.nextLine();
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    Date logDate = null;
+    try {
+      logDate = sdf.parse(logDateString);
+    } catch (ParseException e) {
+      System.out.println("Ошибка: некорректная дата. " + e.getMessage());
+      return;
+    }
     System.out.println("Введите выполнено ли задание (true/false):");
     boolean completed = scanner.nextBoolean();
 
@@ -143,8 +163,8 @@ public class ConsoleInterface {
     }
 
     if (habit != null) {
-      User user = userService.getAuthenticatedUser(); // получить текущего авторизованного пользователя
-      logService.createLog(new Date(logDate), completed, habit, user);
+      User user = userService.getAuthenticatedUser();
+      logService.createLog(logDate, completed, habit, user);
     } else {
       System.out.println("Привычка не найдена");
     }

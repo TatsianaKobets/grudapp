@@ -5,8 +5,10 @@ import java.util.List;
 import org.example.grudapp.model.User;
 
 public class UserService {
+
   private List<User> users = new ArrayList<>();
   private User authenticatedUser;
+
   public User getAuthenticatedUser() {
     return authenticatedUser;
   }
@@ -20,6 +22,15 @@ public class UserService {
     for (User user : users) {
       if (user.getEmail().equals(email) && user.getPassword().equals(password)) {
         authenticatedUser = user;
+        return user;
+      }
+    }
+    return null;
+  }
+
+  public User getUserByEmail(String email) {
+    for (User user : users) {
+      if (user.getEmail().equals(email)) {
         return user;
       }
     }
