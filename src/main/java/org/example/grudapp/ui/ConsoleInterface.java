@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Scanner;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.Log;
+import org.example.grudapp.model.Role;
 import org.example.grudapp.model.User;
 import org.example.grudapp.service.HabitService;
 import org.example.grudapp.service.LogService;
@@ -47,80 +48,168 @@ public class ConsoleInterface {
    */
   public void run() {
     Scanner scanner = new Scanner(System.in);
-
+    // Если пользователь не авторизован, показываем только вход и регистрацию
     while (true) {
-      System.out.println("1. Регистрация");
-      System.out.println("2. Авторизация");
-      System.out.println("3. Изменить данные пользователя");
-      System.out.println("4. Изменить email пользователя");
-      System.out.println("5. Удалить пользователя");
-      System.out.println("6. Выход");
-      System.out.println("7. Создать привычку");
-      System.out.println("8. Просмотреть привычки");
-      System.out.println("9. Удалить привычку");
-      System.out.println("10. Создать отметку о выполнении");
-      System.out.println("11. Просмотреть отметки о выполнении");
-      System.out.println("12. Удалить отметку о выполнении");
-      System.out.println("13. ToDo не реализовано Отправить уведомление");
-      System.out.println("14. ToDo не реализовано Сбросить пароль через email");
-      System.out.println("15. Администрирование");
-      System.out.println("16. просмотреть статистику");
-      System.out.println("Выберите действие: ");
+      if (userService.getAuthenticatedUser() == null) {
+        System.out.println("Вы не авторизованы. Выберите действие:");
+        startPanel(scanner);
+      } else if (userService.getAuthenticatedUser().getRole() == Role.USER) {
+        // Если пользователь авторизован, но не админ, показываем пункты меню для пользователя
+        System.out.println("Вы авторизованы как " + userService.getAuthenticatedUser().getName()
+            + " . Выберите действие:");
+        userPanel(scanner);
+      } else if (userService.getAuthenticatedUser().getRole() == Role.ADMIN) {
+        // Если пользователь админ, показываем все пункты меню
+        System.out.println(
+            "Вы авторизованы как администратор" + userService.getAuthenticatedUser().getName()
+                + "\n У Вас рассширенные права. Выберите действие:");
+        System.out.println("1. Продолжить как администратор");
+        System.out.println("2. Продолжить как пользователь");
+        System.out.println("3. Выход");
+        int choice = scanner.nextInt();
+        switch (choice) {
+          case 1:
+            adminPanel(scanner);
+            break;
+          case 2:
+            userPanel(scanner);
+            break;
+          case 3:
+            System.exit(0);
+            break;
+          default:
+            System.out.println("Неправильный выбор");
+        }
 
-      int choice = scanner.nextInt();
-
-      switch (choice) {
-        case 1:
-          registerUser(scanner);
-          break;
-        case 2:
-          authenticateUser(scanner);
-          break;
-        case 3:
-          editUserProfile(scanner);
-          break;
-        case 4:
-          changeUserEmail(scanner);
-          break;
-        case 5:
-          deleteUser(scanner);
-          break;
-        case 6:
-          System.exit(0);
-          break;
-        case 7:
-          createHabit(scanner);
-          break;
-        case 8:
-          viewHabits(scanner);
-          break;
-        case 9:
-          deleteHabit(scanner);
-          break;
-        case 10:
-          createLog(scanner);
-          break;
-        case 11:
-          viewLogs();
-          break;
-        case 12:
-          deleteLog(scanner);
-          break;
-        case 13:
-          sendNotification(scanner);
-          break;
-        case 14:
-          resetPassword(scanner);
-          break;
-        case 15:
-          adminPanel(scanner);
-          break;
-        case 16:
-          viewStatistics(scanner);
-          break;
-        default:
-          System.out.println("Неправильный выбор");
       }
+    }
+  }
+
+  private void startPanel(Scanner scanner) {
+    System.out.println("1. Регистрация");
+    System.out.println("2. Авторизация");
+    System.out.println("3. Выход");
+    int choice = scanner.nextInt();
+    switch (choice) {
+      case 1:
+        registerUser(scanner);
+        break;
+      case 2:
+        authenticateUser(scanner);
+        break;
+      case 3:
+        System.exit(0);
+        break;
+      default:
+        System.out.println("Неправильный выбор");
+    }
+  }
+
+  private void userPanel(Scanner scanner) {
+    System.out.println("1. Изменить данные пользователя");
+    System.out.println("2. Изменить email пользователя");
+    System.out.println("3. Удалить пользователя");
+    System.out.println("4. Создать привычку");
+    System.out.println("5. Просмотреть привычки");
+    System.out.println("6. Удалить привычку");
+    System.out.println("7. Создать отметку о выполнении");
+    System.out.println("8. Просмотреть отметки о выполнении");
+    System.out.println("9. Удалить отметку о выполнении");
+    System.out.println("10. Выход");
+    int choice = scanner.nextInt();
+    switch (choice) {
+      case 1:
+        editUserProfile(scanner);
+        break;
+      case 2:
+        changeUserEmail(scanner);
+        break;
+      case 3:
+        deleteUser(scanner);
+        break;
+      case 4:
+        createHabit(scanner);
+        break;
+      case 5:
+        viewHabits(scanner);
+        break;
+      case 6:
+        deleteHabit(scanner);
+        break;
+      case 7:
+        createLog(scanner);
+        break;
+      case 8:
+        viewLogs();
+        break;
+      case 9:
+        deleteLog(scanner);
+        break;
+      case 10:
+        System.exit(0);
+        break;
+      default:
+        System.out.println("Неправильный выбор");
+    }
+  }
+
+  /**
+   * Admin panel.
+   *
+   * @param scanner Scanner instance
+   */
+  private void adminPanel(Scanner scanner) {
+    System.out.println(
+        "Вы авторизованы как администратор" + userService.getAuthenticatedUser().getName()
+            + "\n Выберите действие:");
+    System.out.println("1. Просмотреть список пользователей");
+    System.out.println("2. Просмотреть список привычек");
+    System.out.println("3. Заблокировать пользователя");
+    System.out.println("4. Удалить пользователя");
+    System.out.println("5. Создать привычку");
+    System.out.println("6. Просмотреть привычки");
+    System.out.println("7. Удалить привычку");
+    System.out.println("8. Создать отметку о выполнении");
+    System.out.println("9. Просмотреть отметки о выполнении");
+    System.out.println("10. Удалить отметку о выполнении");
+    System.out.println("11. Выход");
+    int choice = scanner.nextInt();
+    switch (choice) {
+      case 1:
+        viewUsers();
+        break;
+      case 2:
+        viewHabitsForAdmin(scanner);
+        break;
+      case 3:
+        blockUser(scanner);
+        break;
+      case 4:
+        adminDeletedUser(scanner);
+        break;
+      case 5:
+        createHabit(scanner);
+        break;
+      case 6:
+        viewHabits(scanner);
+        break;
+      case 7:
+        deleteHabit(scanner);
+        break;
+      case 8:
+        createLog(scanner);
+        break;
+      case 9:
+        viewLogs();
+        break;
+      case 10:
+        deleteLog(scanner);
+        break;
+      case 11:
+        System.exit(0);
+        break;
+      default:
+        System.out.println("Неправильный выбор");
     }
   }
 
@@ -147,6 +236,7 @@ public class ConsoleInterface {
     System.out.println("Введите пароль:");
     String password = scanner.next();
     userService.registerUser(email, password, username);
+    System.out.println("Регистрация прошла успешно");
   }
 
   /**
@@ -330,7 +420,8 @@ public class ConsoleInterface {
 
     System.out.println("Ваши привычки:");
     for (Habit habit : habits) {
-      System.out.println(habit.getId() + ". " + habit.getName() + ": " + habit.getDescription());
+      System.out.println(
+          habit.getId() + ". " + habit.getName() + ": " + habit.getDescription());
     }
   }
 
@@ -511,7 +602,8 @@ public class ConsoleInterface {
     for (Habit habit : habits) {
       double successPercentage = logService.getSuccessPercentage(habit, startDate, endDate);
       System.out.println(
-          "Привычка: " + habit.getName() + ", Процент успешного выполнения: " + successPercentage
+          "Привычка: " + habit.getName() + ", Процент успешного выполнения: "
+              + successPercentage
               + "%");
     }
   }
@@ -534,35 +626,6 @@ public class ConsoleInterface {
     }
   }
 
-  /**
-   * Admin panel.
-   *
-   * @param scanner Scanner instance
-   */
-  private void adminPanel(Scanner scanner) {
-    System.out.println("Администрирование:");
-    System.out.println("1. Список пользователей");
-    System.out.println("2. Список привычек");
-    System.out.println("3. Блокировка пользователя");
-    System.out.println("4. Удаление пользователя");
-    int choice = scanner.nextInt();
-    switch (choice) {
-      case 1:
-        viewUsers();
-        break;
-      case 2:
-        viewHabitsForAdmin(scanner);
-        break;
-      case 3:
-        blockUser(scanner);
-        break;
-      case 4:
-        adminDeletedUser(scanner);
-        break;
-      default:
-        System.out.println("Неправильный выбор");
-    }
-  }
 
   /**
    * Views users.
@@ -583,8 +646,9 @@ public class ConsoleInterface {
   private void viewHabitsForAdmin(Scanner scanner) {
     List<Habit> habits = habitService.getHabits();
     for (Habit habit : habits) {
-      System.out.println("ID: " + habit.getId() + ", Название: " + habit.getName() + ", Описание: "
-          + habit.getDescription());
+      System.out.println(
+          "ID: " + habit.getId() + ", Название: " + habit.getName() + ", Описание: "
+              + habit.getDescription());
     }
   }
 

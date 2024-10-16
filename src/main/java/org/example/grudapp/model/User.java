@@ -36,7 +36,31 @@ public class User {
    * Indicates whether the user is blocked.
    */
   private boolean blocked;
+  /**
+   * Role of the user (ADMIN or USER).
+   */
+  private Role role;
 
+
+  /**
+   * Constructs a User object with the given parameters.
+   *
+   * @param id       the unique ID for the user
+   * @param email    the email address of the user
+   * @param password the password of the user
+   * @param name     the name of the user
+   * @param role     the role of the user
+   */
+  public User(int id, String email, String password, String name, Role role) {
+    this.id = id;
+    this.email = email;
+    this.password = password;
+    this.name = name;
+    this.habits = new ArrayList<>();
+    this.logs = new ArrayList<>();
+    this.blocked = false;
+    this.role = role;
+  }
   /**
    * Constructs a User object with the given parameters.
    *
@@ -136,5 +160,23 @@ public class User {
    */
   public void setBlocked(boolean blocked) {
     this.blocked = blocked;
+  }
+
+  /**
+   * Returns the role of the user.
+   *
+   * @return the role
+   */
+  public Role getRole() {
+    return role;
+  }
+
+  /**
+   * Sets the role of the user.
+   *
+   * @param role the new role
+   */
+  public void setRole(Role role) {
+    this.role = role;
   }
 }
