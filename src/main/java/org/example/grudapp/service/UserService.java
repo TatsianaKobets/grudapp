@@ -46,7 +46,12 @@ public class UserService {
    */
   public void registerUser(String email, String password, String name) {
     User user = new User(users.size() + 1, email, password, name);
-    user.setRole(Role.USER);
+    if (users.isEmpty()) {
+      user.setRole(Role.ADMIN);
+      System.out.println("Вам присвоена роль администратора");
+    } else {
+      user.setRole(Role.USER);
+    }
     users.put(user.getId(), user);
   }
 

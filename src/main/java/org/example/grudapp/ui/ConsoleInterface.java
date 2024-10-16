@@ -7,10 +7,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.Log;
 import org.example.grudapp.model.Role;
 import org.example.grudapp.model.User;
+import org.example.grudapp.service.AdminService;
 import org.example.grudapp.service.HabitService;
 import org.example.grudapp.service.LogService;
 import org.example.grudapp.service.NotificationService;
@@ -28,6 +30,8 @@ public class ConsoleInterface {
   private LogService logService;
   private NotificationService notificationService;
 
+  private AdminService adminService;
+
   /**
    * Constructor for ConsoleInterface.
    *
@@ -35,13 +39,15 @@ public class ConsoleInterface {
    * @param habitService        HabitService instance
    * @param logService          LogService instance
    * @param notificationService NotificationService instance
+   * @param adminService        AdminService instance
    */
   public ConsoleInterface(UserService userService, HabitService habitService, LogService logService,
-      NotificationService notificationService) {
+      NotificationService notificationService, AdminService adminService) {
     this.userService = userService;
     this.habitService = habitService;
     this.logService = logService;
     this.notificationService = notificationService;
+    this.adminService = adminService;
   }
 
   /**
@@ -163,24 +169,22 @@ public class ConsoleInterface {
     System.out.println(
         "Вы авторизованы как администратор" + userService.getAuthenticatedUser().getName()
             + "\n Выберите действие:");
-    System.out.println("1. Просмотреть список пользователей");
-    System.out.println("2. Просмотреть список привычек");
+    System.out.println("1. Назначить роль администратора для пользователя");
+    System.out.println("2. Назначить роль пользователя для администратора");
     System.out.println("3. Заблокировать пользователя");
-    System.out.println("4. Удалить пользователя");
-    System.out.println("5. Создать привычку");
-    System.out.println("6. Просмотреть привычки");
-    System.out.println("7. Удалить привычку");
-    System.out.println("8. Создать отметку о выполнении");
-    System.out.println("9. Просмотреть отметки о выполнении");
-    System.out.println("10. Удалить отметку о выполнении");
-    System.out.println("11. Выход");
+    System.out.println("4. Удалить пользователя из системы администратором");
+    System.out.println("5. Просмотреть всех администраторов");
+    System.out.println("6. Просмотреть всех пользователей");
+    System.out.println("7. Просмотреть все привычки");
+    System.out.println("8. Выход");
     int choice = scanner.nextInt();
     switch (choice) {
       case 1:
-        viewUsers();
+        assignAdminRole(scanner);
         break;
       case 2:
-        viewHabitsForAdmin(scanner);
+        assignUserRole(scanner);
+       // viewHabitsForAdmin(scanner);
         break;
       case 3:
         blockUser(scanner);
@@ -189,31 +193,84 @@ public class ConsoleInterface {
         adminDeletedUser(scanner);
         break;
       case 5:
-        createHabit(scanner);
+        viewAllAdmins(scanner);
         break;
       case 6:
-        viewHabits(scanner);
+        viewAllUsers(scanner);
         break;
       case 7:
-        deleteHabit(scanner);
+        viewAllHabits(scanner);
         break;
       case 8:
-        createLog(scanner);
-        break;
-      case 9:
-        viewLogs();
-        break;
-      case 10:
-        deleteLog(scanner);
-        break;
-      case 11:
         System.exit(0);
         break;
       default:
         System.out.println("Неправильный выбор");
     }
   }
+  /**
+   * Assigns the admin role to a user.
+   *
+   * @param scanner Scanner instance
+   */
+  private void assignAdminRole(Scanner scanner) {
+    System.out.println("Введите ID пользователя:");
+    int userId = scanner.nextInt();
+    User user = userService.getUserById(userId);
+    if (user != null) {
+      adminService.assignAdminRole(user);
+      System.out.println("Роль ADMIN назначена пользователю");
+    } else {
+      System.out.println("Пользователь не найден");
+    }
+  }
+  /**
+   * Assigns the user role to a user.
+   *
+   * @param scanner Scanner instance
+   */
+  private void assignUserRole(Scanner scanner) {
+    System.out.println("Введите ID пользователя:");
+    int userId = scanner.nextInt();
+    User user = userService.getUserById(userId);
+    if (user != null) {
+      adminService.assignUserRole(user);
+      System.out.println("Роль USER, назначенная пользователю");
+    } else {
+      System.out.println("Пользователь не найден");
+    }
+  }
+  /**
+   * Views all admins.
+   */
+  private void viewAllAdmins(Scanner scanner) {
+    Set<User> admins = adminService.getAdmins();
+    System.out.println("Все администраторы:");
+    for (User admin : admins) {
+      System.out.println("ID: " + admin.getId() + ", Email: " + admin.getEmail() + ", Name: " + admin.getName());
+    }
+  }
 
+  /**
+   * Views all users.
+   */
+  private void viewAllUsers(Scanner scanner) {
+    Set<User> users = adminService.getUsers();
+    System.out.println("Все пользователи:");
+    for (User user : users) {
+      System.out.println("ID: " + user.getId() + ", Email: " + user.getEmail() + ", Name: " + user.getName() + ", Role: " + user.getRole());
+    }
+  }
+
+  /**
+   * Views all habits.
+   */
+  private void viewAllHabits(Scanner scanner) {
+    Set<Habit> habits = adminService.getHabits();
+    for (Habit habit : habits) {
+      System.out.println("ID: " + habit.getId() + ", Название: " + habit.getName() + ", Описание: " + habit.getDescription());
+    }
+  }
   /**
    * Registers a new user.
    *
@@ -635,20 +692,6 @@ public class ConsoleInterface {
     for (User user : users.values()) {
       System.out.println(
           "ID: " + user.getId() + ", Email: " + user.getEmail() + ", Имя: " + user.getName());
-    }
-  }
-
-  /**
-   * Views habits for admin.
-   *
-   * @param scanner Scanner instance
-   */
-  private void viewHabitsForAdmin(Scanner scanner) {
-    Map<Integer, Habit> habits = habitService.getHabits();
-    for (Habit habit : habits.values()) {
-      System.out.println(
-          "ID: " + habit.getId() + ", Название: " + habit.getName() + ", Описание: "
-              + habit.getDescription());
     }
   }
 

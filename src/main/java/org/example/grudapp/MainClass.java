@@ -1,5 +1,6 @@
 package org.example.grudapp;
 
+import org.example.grudapp.service.AdminService;
 import org.example.grudapp.service.HabitService;
 import org.example.grudapp.service.LogService;
 import org.example.grudapp.service.NotificationService;
@@ -13,10 +14,11 @@ public class MainClass {
     UserService userService = new UserService();
     HabitService habitService = new HabitService();
     LogService logService = new LogService();
+    AdminService adminService = new AdminService();
     NotificationService notificationService = new NotificationService(
         new EmailNotificationService("smtp.gmail.com", "587", "ваш_емейл@gmail.com", "ваш_пароль"));
     ConsoleInterface consoleInterface = new ConsoleInterface(
-        userService, habitService, logService, notificationService);
+        userService, habitService, logService, notificationService, adminService);
     consoleInterface.run();
   }
 }

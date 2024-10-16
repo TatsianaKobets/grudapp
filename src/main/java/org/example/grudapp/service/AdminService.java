@@ -19,10 +19,18 @@ public class AdminService {
    * Set of all users.
    */
   private Set<User> users = new HashSet<>();
+
+  public Set<Habit> getHabits() {
+    return habits;
+  }
+
   /**
    * Set of all habits.
    */
   private Set<Habit> habits = new HashSet<>();
+
+  public AdminService() {
+  }
 
   public AdminService(Set<User> admins, Set<User> users, Set<Habit> habits) {
     this.admins = admins;

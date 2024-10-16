@@ -41,6 +41,9 @@ public class User {
    */
   private Role role;
 
+  public User(int id) {
+    this.id = id;
+  }
 
   /**
    * Constructs a User object with the given parameters.
