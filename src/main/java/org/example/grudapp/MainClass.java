@@ -13,11 +13,11 @@ public class MainClass {
     UserService userService = new UserService();
     HabitService habitService = new HabitService();
     LogService logService = new LogService();
-    NotificationService notificationService = new NotificationService(
+/*    NotificationService notificationService = new NotificationService(
         new EmailNotificationService("smtp.gmail.com", "587", "ваш_емейл@gmail.com", "ваш_пароль"));
     ConsoleInterface consoleInterface = new ConsoleInterface(
         userService, habitService, logService, notificationService);
-    consoleInterface.run();
+    consoleInterface.run();*/
   }
 
 }

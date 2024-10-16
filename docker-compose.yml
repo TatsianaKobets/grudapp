@@ -1,5 +1,4 @@
-version: "3.9"
-
+version: '3.8'
 services:
   postgres:
     image: postgres:13.3
@@ -24,3 +23,20 @@ services:
       - dataSource.user=user
       - dataSource.password=password
       - dataSource.databaseName=mydb
+  liquibase:
+    build: .
+    command: /liquibase/liquibase update --changeLogFile=/liquibase/changelog.xml --url=jdbc:postgresql://postgres:5432/mydb --username=user --password=password
+    depends_on:
+      - postgres
+  #liquibase:
+  #  image: liquibase/liquibase:4.29.2
+   # volumes:
+   #   - ./src/main/resources/db.db:/liquibase/db
+    #depends_on:
+    #  - postgres
+    #command: >
+    #  --changeLogFile=/liquibase/changelog/changelog.xml
+     # update
+     # --url=jdbc:postgresql://postgres:5432/mydb
+      #--username=user
+      #--password=password

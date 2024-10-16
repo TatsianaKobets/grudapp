@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet id="2" author="tatsiana.kobets">
+    <sql>
+      INSERT INTO mydb.users (email, password, name)
+      VALUES ('user1@example.com', 'password1', 'User 1');
+      INSERT INTO mydb.users (email, password, name)
+      VALUES ('user2@example.com', 'password2', 'User 2');
+    </sql>
+    <sql>
+      INSERT INTO mydb.habits (name, description, frequency, user_id)
+      VALUES ('Habit 1', 'Description 1', 'daily', 1);
+      INSERT INTO mydb.habits (name, description, frequency, user_id)
+      VALUES ('Habit 2', 'Description 2', 'weekly', 2);
+    </sql>
+    <sql>
+      INSERT INTO mydb.logs (log_date, completed, habit_id, user_id)
+      VALUES ('2022-01-01', TRUE, 1, 1);
+      INSERT INTO mydb.logs (log_date, completed, habit_id, user_id)
+      VALUES ('2022-01-02', FALSE, 2, 2);
+    </sql>
+  </changeSet>
+</databaseChangeLog>
