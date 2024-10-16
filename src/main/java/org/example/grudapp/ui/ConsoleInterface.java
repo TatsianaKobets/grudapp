@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.Log;
@@ -353,8 +354,7 @@ public class ConsoleInterface {
         frequency = "daily";
     }
 
-    habitService.createHabit(habitName, habitDescription, frequency, user,
-        habitService.getHabits());
+    habitService.createHabit(habitName, habitDescription, frequency, user);
   }
 
   /**
@@ -461,7 +461,7 @@ public class ConsoleInterface {
     boolean completed = scanner.nextBoolean();
 
     Habit habit = null;
-    for (Habit h : habitService.getHabits()) {
+    for (Habit h : habitService.getHabits().values()) {
       if (h.getId() == habitId) {
         habit = h;
         break;
@@ -484,13 +484,13 @@ public class ConsoleInterface {
       System.out.println("У вас нет отметок.");
       return;
     }
-    List<Log> logs = logService.getLogs();
-    for (Log log : logs) {
-      /* System.out.println("Дата выполнения: " + log.getLogDate());
-    System.out.println("Название привычки: " + log.getHabit().getName());
-    System.out.println("Выполнено: " + (log.isCompleted() ? "Да" : "Нет"));
-    System.out.println();*/
-      System.out.println(log.getHabit().getName() + ": " + log.getLogDate());
+    Map<Integer, Log> logs = logService.getLogs();
+    for (Log log : logs.values()) {
+      System.out.println("Дата выполнения: " + log.getLogDate());
+      System.out.println("Название привычки: " + log.getHabit().getName());
+      System.out.println("Выполнено: " + (log.isCompleted() ? "Да" : "Нет"));
+      System.out.println("Создатель: " + log.getUser().getName());
+      System.out.println();
     }
   }
 
@@ -631,8 +631,8 @@ public class ConsoleInterface {
    * Views users.
    */
   private void viewUsers() {
-    List<User> users = userService.getUsers();
-    for (User user : users) {
+    Map<Integer, User> users = userService.getUsers();
+    for (User user : users.values()) {
       System.out.println(
           "ID: " + user.getId() + ", Email: " + user.getEmail() + ", Имя: " + user.getName());
     }
@@ -644,8 +644,8 @@ public class ConsoleInterface {
    * @param scanner Scanner instance
    */
   private void viewHabitsForAdmin(Scanner scanner) {
-    List<Habit> habits = habitService.getHabits();
-    for (Habit habit : habits) {
+    Map<Integer, Habit> habits = habitService.getHabits();
+    for (Habit habit : habits.values()) {
       System.out.println(
           "ID: " + habit.getId() + ", Название: " + habit.getName() + ", Описание: "
               + habit.getDescription());

@@ -1,47 +1,56 @@
 package org.example.grudapp.service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.Role;
 import org.example.grudapp.model.User;
 
 /**
  * Provides services for managing administrators.
- */public class AdminService {
-  /**
-   * List of all administrators.
-   */
-  private List<User> admins = new ArrayList<>();
-  /**
-   * List of all users.
-   */
-  private List<User> users = new ArrayList<>();
-  /**
-   * List of all habits.
-   */
-  private List<Habit> habits = new ArrayList<>();
+ */
+public class AdminService {
 
-  public List<User> getAdmins() {
-    return admins;
-  }
+  /**
+   * Set of all admins. Initially empty.
+   */
+  private Set<User> admins = new HashSet<>();
+  /**
+   * Set of all users.
+   */
+  private Set<User> users = new HashSet<>();
+  /**
+   * Set of all habits.
+   */
+  private Set<Habit> habits = new HashSet<>();
 
-  public AdminService(List<User> admins, List<User> users, List<Habit> habits) {
+  public AdminService(Set<User> admins, Set<User> users, Set<Habit> habits) {
     this.admins = admins;
     this.users = users;
     this.habits = habits;
   }
-  public List<User> getUsers() {
+
+  public Set<User> getAdmins() {
+    return admins;
+  }
+
+  public void setAdmins(Set<User> admins) {
+    this.admins = admins;
+  }
+
+  public Set<User> getUsers() {
     return users;
   }
 
-  public List<Habit> getHabits() {
-    return habits;
+  public void setUsers(Set<User> users) {
+    this.users = users;
   }
+
   public void addUser(User user) {
     admins.add(user);
     users.add(user);
   }
+
   public void removeUser(User user) {
     admins.remove(user);
     users.remove(user);
@@ -50,6 +59,7 @@ import org.example.grudapp.model.User;
   public void addHabit(Habit habit) {
     habits.add(habit);
   }
+
   public void removeHabit(Habit habit) {
     habits.remove(habit);
   }
@@ -63,6 +73,7 @@ import org.example.grudapp.model.User;
     user.setRole(Role.ADMIN);
     admins.add(user);
   }
+
   /**
    * Assigns the user role to a user.
    *

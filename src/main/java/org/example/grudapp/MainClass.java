@@ -19,5 +19,4 @@ public class MainClass {
         userService, habitService, logService, notificationService);
     consoleInterface.run();
   }
-
 }

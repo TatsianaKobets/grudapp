@@ -1,28 +1,27 @@
 package org.example.grudapp.service;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import org.example.grudapp.model.Habit;
-import org.example.grudapp.model.User;
 
 public class AdminHabitService {
 
   /**
-   * List of all habits in the system.
+   * Map of all habits in the system. The key is the ID of the habit, and the value is the habit.
    */
-  private List<Habit> habitsInSystem = new ArrayList<>();
+  private Map<Integer, Habit> habitsInSystem = new HashMap<>();
 
   /**
-   * Returns the list of all habits in the system.
+   * Map of all users in the system. The key is the ID of the user, and the value is the user.
    *
-   * @return the list of habits
+   * @return
    */
-  public List<Habit> getHabitsInSystem() {
+  public Map<Integer, Habit> getHabitsInSystem() {
     return habitsInSystem;
   }
 
-  public void setHabitsInSystem(List<Habit> habitsInSystem) {
+  public void setHabitsInSystem(Map<Integer, Habit> habitsInSystem) {
     this.habitsInSystem = habitsInSystem;
   }
 
@@ -34,6 +33,6 @@ public class AdminHabitService {
    */
   public void createHabitInSystem(String name, String description) {
     Habit habit = new Habit(habitsInSystem.size() + 1, name, description, new Date());
-    habitsInSystem.add(habit);
+    habitsInSystem.put(habit.getId(), habit);
   }
 }

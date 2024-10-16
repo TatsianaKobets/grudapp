@@ -1,8 +1,8 @@
 package org.example.grudapp.service;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.Notification;
 import org.example.grudapp.model.User;
@@ -18,9 +18,11 @@ public class NotificationService {
    */
   private EmailNotificationService emailNotificationService;
   /**
-   * List of all notifications.
+   * Map of all notifications. The key is the ID of the notification, and the value is the
+   * notification.
    */
-  private List<Notification> notifications = new ArrayList<>();
+  private Map<Integer, Notification> notifications = new HashMap<>();
+
 
   /**
    * Creates a new notification service with the given email notification service.
@@ -42,7 +44,7 @@ public class NotificationService {
   public void createNotification(Date notificationDate, boolean sent, User user, Habit habit) {
     Notification notification = new Notification(notifications.size() + 1, notificationDate, sent,
         user, habit);
-    notifications.add(notification);
+    notifications.put(notification.getId(), notification);
   }
 
   public int getNotificationCount() {
@@ -50,7 +52,7 @@ public class NotificationService {
   }
 
   public void addNotification(Notification notification) {
-    notifications.add(notification);
+    notifications.put(notification.getId(), notification);
   }
 
   /**
@@ -59,7 +61,7 @@ public class NotificationService {
    * @param notificationId the ID of the notification to send
    */
   public void sendNotification(int notificationId) {
-    for (Notification notification : notifications) {
+    for (Notification notification : notifications.values()) {
       if (notification.getId() == notificationId) {
         notification.setSent(true);
         // Отправка уведомления через email или push-уведомления
