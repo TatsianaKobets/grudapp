@@ -15,10 +15,10 @@ public class MainClass {
     HabitService habitService = new HabitService();
     LogService logService = new LogService();
     AdminService adminService = new AdminService();
-    NotificationService notificationService = new NotificationService(
-        new EmailNotificationService("smtp.gmail.com", "587", "ваш_емейл@gmail.com", "ваш_пароль"));
+  /*  NotificationService notificationService = new NotificationService(
+        new EmailNotificationService("smtp.gmail.com", "587", "ваш_емейл@gmail.com", "ваш_пароль"));*/
     ConsoleInterface consoleInterface = new ConsoleInterface(
-        userService, habitService, logService, notificationService, adminService);
+        userService, habitService, logService, adminService);
     consoleInterface.run();
   }
 }

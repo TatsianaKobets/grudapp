@@ -38,15 +38,14 @@ public class ConsoleInterface {
    * @param userService         UserService instance
    * @param habitService        HabitService instance
    * @param logService          LogService instance
-   * @param notificationService NotificationService instance
    * @param adminService        AdminService instance
    */
   public ConsoleInterface(UserService userService, HabitService habitService, LogService logService,
-      NotificationService notificationService, AdminService adminService) {
+      AdminService adminService) {
     this.userService = userService;
     this.habitService = habitService;
     this.logService = logService;
-    this.notificationService = notificationService;
+
     this.adminService = adminService;
   }
 

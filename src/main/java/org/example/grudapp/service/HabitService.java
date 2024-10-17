@@ -1,10 +1,15 @@
 package org.example.grudapp.service;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.example.grudapp.dbconnect.DatabaseConnector;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.User;
 
@@ -12,6 +17,16 @@ import org.example.grudapp.model.User;
  * Provides services for managing habits.
  */
 public class HabitService {
+
+  private Connection connection;
+
+  public HabitService() {
+    try {
+      connection = DatabaseConnector.getConnection();
+    } catch (SQLException e) {
+      System.out.println("Ошибка подключения к базе данных: " + e.getMessage());
+    }
+  }
 
   /**
    * Map of all habits. The key is the ID of the habit, and the value is the habit.
@@ -40,9 +55,24 @@ public class HabitService {
    * @param user
    */
   public void createHabit(String name, String description, String frequency, User user) {
-    Habit habit = new Habit(habits.size() + 1, name, description, frequency, user, new Date());
-    habits.put(habit.getId(), habit);
-    user.getHabits().add(habit);
+    String query = "INSERT INTO habits (name, description, frequency, user_id) VALUES (?, ?, ?, ?)";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, name);
+      statement.setString(2, description);
+      statement.setString(3, frequency);
+      statement.setInt(4, user.getId());
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Ошибка создания привычки: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
+      }
+    }
   }
 
   /**
@@ -52,14 +82,34 @@ public class HabitService {
    * @return the list of habits for the user
    */
   public List<Habit> getHabitsByUser(User user) {
-    List<Habit> result = new ArrayList<>();
-    for (Habit habit : habits.values()) {
-      if (habit.getUser().equals(user)) {
-        result.add(habit);
+    List<Habit> habits = new ArrayList<>();
+    String query = "SELECT * FROM habits WHERE user_id = ?";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setInt(1, user.getId());
+      try (ResultSet resultSet = statement.executeQuery()) {
+        while (resultSet.next()) {
+          Habit habit = new Habit();
+          habit.setId(resultSet.getInt("id"));
+          habit.setName(resultSet.getString("name"));
+          habit.setDescription(resultSet.getString("description"));
+          habit.setFrequency(resultSet.getString("frequency"));
+          habits.add(habit);
+        }
+      }
+    } catch (SQLException e) {
+      System.out.println("Ошибка получения привычек пользователя: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
       }
     }
-    return result;
+    return habits;
   }
+
 
   /**
    * Updates an existing habit.
@@ -70,13 +120,22 @@ public class HabitService {
    * @param frequency   the new frequency of the habit
    */
   public void updateHabit(int habitId, String name, String description, String frequency) {
-    for (Habit habit : habits.values()) {
-      if (habit.getId() == habitId) {
-        habit.setName(name);
-        habit.setDescription(description);
-        habit.setFrequency(frequency);
-        habit.setCreationDate(new Date());
-        return;
+    String query = "UPDATE habits SET name = ?, description = ?, frequency = ? WHERE id = ?";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, name);
+      statement.setString(2, description);
+      statement.setString(3, frequency);
+      statement.setInt(4, habitId);
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Ошибка обновления привычки: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
       }
     }
   }
@@ -87,10 +146,19 @@ public class HabitService {
    * @param habitId the ID of the habit to delete
    */
   public void deleteHabit(int habitId) {
-    for (Habit habit : habits.values()) {
-      if (habit.getId() == habitId) {
-        habits.remove(habit);
-        return;
+    String query = "DELETE FROM habits WHERE id = ?";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setInt(1, habitId);
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Ошибка удаления привычки: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
       }
     }
   }
