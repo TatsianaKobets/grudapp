@@ -23,10 +23,10 @@ services:
       - dataSource.user=user
       - dataSource.password=password
       - dataSource.databaseName=mydb
-  liquibase:
-    build: .
-    command: /liquibase/liquibase update --changeLogFile=/liquibase/changelog.xml --url=jdbc:postgresql://postgres:5432/mydb --username=user --password=password
-    depends_on:
+ # liquibase:
+  #  build: .
+   # command: /liquibase/liquibase update --changeLogFile=/liquibase/changelog.xml --url=jdbc:postgresql://postgres:5432/mydb --username=user --password=password
+    #depends_on:
       - postgres
   #liquibase:
   #  image: liquibase/liquibase:4.29.2
