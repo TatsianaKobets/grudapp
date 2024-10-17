@@ -58,6 +58,13 @@ public class Habit {
     this.user = user;
     this.creationDate = new Date();
   }
+  public Habit(int id, String name, String description, Date creationDate) {
+    this.id = id;
+    this.name = name;
+    this.description = description;
+    this.logs = new ArrayList<>();
+    this.creationDate = new Date();
+  }
 
   /**
    * Returns the unique ID for the habit.

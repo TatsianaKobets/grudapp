@@ -1,7 +1,8 @@
 package org.example.grudapp.service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import org.example.grudapp.model.Role;
 import org.example.grudapp.model.User;
 
 /**
@@ -12,21 +13,20 @@ public class UserService {
   /**
    * List of all users.
    */
-  private List<User> users = new ArrayList<>();
-
-  /**
-   * Returns the list of all users.
-   *
-   * @return the list of users
-   */
-  public List<User> getUsers() {
-    return users;
-  }
-
+  private Map<Integer, User> users = new HashMap<>();
   /**
    * The currently authenticated user.
    */
   private User authenticatedUser;
+
+  /**
+   * Returns the list of all users.
+   *
+   * @return the map of users, where the key is the user ID and the value is the user object
+   */
+  public Map<Integer, User> getUsers() {
+    return users;
+  }
 
   /**
    * Returns the currently authenticated user.
@@ -46,7 +46,13 @@ public class UserService {
    */
   public void registerUser(String email, String password, String name) {
     User user = new User(users.size() + 1, email, password, name);
-    users.add(user);
+    if (users.isEmpty()) {
+      user.setRole(Role.ADMIN);
+      System.out.println("Вам присвоена роль администратора");
+    } else {
+      user.setRole(Role.USER);
+    }
+    users.put(user.getId(), user);
   }
 
   /**
@@ -57,7 +63,7 @@ public class UserService {
    * @return the authenticated user, or null if authentication fails
    */
   public User authenticateUser(String email, String password) {
-    for (User user : users) {
+    for (User user : users.values()) {
       if (user.getEmail().equals(email) && user.getPassword().equals(password)) {
         authenticatedUser = user;
         return user;
@@ -67,13 +73,23 @@ public class UserService {
   }
 
   /**
+   * Returns a user by their ID.
+   *
+   * @param id the ID of the user
+   * @return the user, or null if not found
+   */
+  public User getUserById(int id) {
+    return users.get(id);
+  }
+
+  /**
    * Returns a user by their email address.
    *
    * @param email the email address of the user
    * @return the user, or null if not found
    */
   public User getUserByEmail(String email) {
-    for (User user : users) {
+    for (User user : users.values()) {
       if (user.getEmail().equals(email)) {
         return user;
       }
@@ -87,41 +103,11 @@ public class UserService {
    * @param user the user to edit
    */
   public void editUserProfile(User user) {
-    // обновить данные пользователя в базе данных
-    for (User existingUser : users) {
+    for (User existingUser : users.values()) {
       if (existingUser.getId() == user.getId()) {
         existingUser.setName(user.getName());
         existingUser.setEmail(user.getEmail());
         existingUser.setPassword(user.getPassword());
-        break;
-      }
-    }
-  }
-
-  /**
-   * Returns a user by their ID.
-   *
-   * @param id the ID of the user
-   * @return the user, or null if not found
-   */
-  public User getUserById(int id) {
-    for (User user : users) {
-      if (user.getId() == id) {
-        return user;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Deletes a user by their email address.
-   *
-   * @param email the email address of the user to delete
-   */
-  public void deleteUser(String email) {
-    for (User user : users) {
-      if (user.getEmail() == email) {
-        users.remove(user);
         break;
       }
     }
@@ -155,5 +141,19 @@ public class UserService {
       password.append(characters.charAt((int) (Math.random() * characters.length())));
     }
     return password.toString();
+  }
+
+  /**
+   * Deletes a user by their email address.
+   *
+   * @param email the email address of the user to delete
+   */
+  public void deleteUser(String email) {
+    for (User user : users.values()) {
+      if (user.getEmail().equals(email)) {
+        users.remove(user.getId());
+        break;
+      }
+    }
   }
 }

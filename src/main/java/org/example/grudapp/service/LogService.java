@@ -2,7 +2,9 @@ package org.example.grudapp.service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.Log;
 import org.example.grudapp.model.User;
@@ -13,16 +15,11 @@ import org.example.grudapp.model.User;
 public class LogService {
 
   /**
-   * List of all logs.
+   * Map of all logs. The key is the ID of the log, and the value is the log.
    */
-  private List<Log> logs = new ArrayList<>();
+  private Map<Integer, Log> logs = new HashMap<>();
 
-  /**
-   * Returns the list of all logs.
-   *
-   * @return the list of logs
-   */
-  public List<Log> getLogs() {
+  public Map<Integer, Log> getLogs() {
     return logs;
   }
 
@@ -36,7 +33,7 @@ public class LogService {
    */
   public void createLog(Date logDate, boolean completed, Habit habit, User user) {
     Log log = new Log(logs.size() + 1, logDate, completed, habit, user);
-    logs.add(log);
+    logs.put(log.getId(), log);
     habit.getLogs().add(log);
   }
 
@@ -48,7 +45,7 @@ public class LogService {
    * @param completed the new completion status of the log
    */
   public void updateLog(int logId, Date logDate, boolean completed) {
-    for (Log log : logs) {
+    for (Log log : logs.values()) {
       if (log.getId() == logId) {
         log.setLogDate(logDate);
         log.setCompleted(completed);
@@ -63,7 +60,7 @@ public class LogService {
    * @param logId the ID of the log to delete
    */
   public void deleteLog(int logId) {
-    for (Log log : logs) {
+    for (Log log : logs.values()) {
       if (log.getId() == logId) {
         logs.remove(log);
         return;
@@ -136,12 +133,14 @@ public class LogService {
 
     return (double) successfulLogs / totalLogs * 100;
   }
+
   public void addLog(Log log) {
-    logs.add(log);
+    logs.put(log.getId(), log);
   }
+
   public List<Log> getLogsByHabit(Habit habit) {
     List<Log> logsByHabit = new ArrayList<>();
-    for (Log log : logs) {
+    for (Log log : logs.values()) {
       if (log.getHabit().equals(habit)) {
         logsByHabit.add(log);
       }

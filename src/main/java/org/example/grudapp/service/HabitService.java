@@ -2,7 +2,9 @@ package org.example.grudapp.service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.User;
 
@@ -12,36 +14,34 @@ import org.example.grudapp.model.User;
 public class HabitService {
 
   /**
-   * List of all habits.
+   * Map of all habits. The key is the ID of the habit, and the value is the habit.
    */
-  private List<Habit> habits = new ArrayList<>();
+  private Map<Integer, Habit> habits = new HashMap<>();
 
   /**
-   * Returns the list of all habits.
+   * Map of all users. The key is the ID of the user, and the value is the user.
    *
-   * @return the list of habits
+   * @return
    */
-  public List<Habit> getHabits() {
+  public Map<Integer, Habit> getHabits() {
     return habits;
   }
 
-  public void setHabits(List<Habit> habits) {
+  public void setHabits(Map<Integer, Habit> habits) {
     this.habits = habits;
   }
 
   /**
-   * Creates a new habit.
+   * Creates a new habit for a given user.
    *
-   * @param name        the name of the habit
-   * @param description the description of the habit
-   * @param frequency   the frequency of the habit
-   * @param user        the user who created the habit
-   * @param habits      the list of habits to add the new habit to
+   * @param name
+   * @param description
+   * @param frequency
+   * @param user
    */
-  public void createHabit(String name, String description, String frequency, User user,
-      List<Habit> habits) {
+  public void createHabit(String name, String description, String frequency, User user) {
     Habit habit = new Habit(habits.size() + 1, name, description, frequency, user, new Date());
-    habits.add(habit);
+    habits.put(habit.getId(), habit);
     user.getHabits().add(habit);
   }
 
@@ -53,7 +53,7 @@ public class HabitService {
    */
   public List<Habit> getHabitsByUser(User user) {
     List<Habit> result = new ArrayList<>();
-    for (Habit habit : habits) {
+    for (Habit habit : habits.values()) {
       if (habit.getUser().equals(user)) {
         result.add(habit);
       }
@@ -70,7 +70,7 @@ public class HabitService {
    * @param frequency   the new frequency of the habit
    */
   public void updateHabit(int habitId, String name, String description, String frequency) {
-    for (Habit habit : habits) {
+    for (Habit habit : habits.values()) {
       if (habit.getId() == habitId) {
         habit.setName(name);
         habit.setDescription(description);
@@ -87,7 +87,7 @@ public class HabitService {
    * @param habitId the ID of the habit to delete
    */
   public void deleteHabit(int habitId) {
-    for (Habit habit : habits) {
+    for (Habit habit : habits.values()) {
       if (habit.getId() == habitId) {
         habits.remove(habit);
         return;
