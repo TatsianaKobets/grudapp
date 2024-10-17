@@ -1,7 +1,11 @@
 package org.example.grudapp.service;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
+import org.example.grudapp.dbconnect.DatabaseConnector;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.Role;
 import org.example.grudapp.model.User;
@@ -10,6 +14,17 @@ import org.example.grudapp.model.User;
  * Provides services for managing administrators.
  */
 public class AdminService {
+
+  HabitService habitService;
+  private Connection connection;
+
+  public AdminService() {
+    try {
+      connection = DatabaseConnector.getConnection();
+    } catch (SQLException e) {
+      System.out.println("Ошибка подключения к базе данных: " + e.getMessage());
+    }
+  }
 
   /**
    * Set of all admins. Initially empty.
@@ -29,8 +44,6 @@ public class AdminService {
    */
   private Set<Habit> habits = new HashSet<>();
 
-  public AdminService() {
-  }
 
   public AdminService(Set<User> admins, Set<User> users, Set<Habit> habits) {
     this.admins = admins;
@@ -57,19 +70,23 @@ public class AdminService {
   public void addUser(User user) {
     admins.add(user);
     users.add(user);
+    saveUser(user);
   }
 
   public void removeUser(User user) {
     admins.remove(user);
     users.remove(user);
+    deleteUser(user);
   }
 
   public void addHabit(Habit habit) {
     habits.add(habit);
+    habitService.saveHabit(habit);
   }
 
   public void removeHabit(Habit habit) {
     habits.remove(habit);
+    habitService.deleteHabit(habit.getId());
   }
 
   /**
@@ -80,6 +97,7 @@ public class AdminService {
   public void assignAdminRole(User user) {
     user.setRole(Role.ADMIN);
     admins.add(user);
+    updateUserRole(user);
   }
 
   /**
@@ -90,5 +108,39 @@ public class AdminService {
   public void assignUserRole(User user) {
     user.setRole(Role.USER);
     admins.remove(user);
+    updateUserRole(user);
+  }
+
+  private void saveUser(User user) {
+    String query = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, user.getName());
+      statement.setString(2, user.getPassword());
+      statement.setString(3, user.getRole().toString());
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Ошибка сохранения пользователя: " + e.getMessage());
+    }
+  }
+
+  private void deleteUser(User user) {
+    String query = "DELETE FROM users WHERE id = ?";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setInt(1, user.getId());
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Ошибка удаления пользователя: " + e.getMessage());
+    }
+  }
+
+  private void updateUserRole(User user) {
+    String query = "UPDATE users SET role = ? WHERE id = ?";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, user.getRole().toString());
+      statement.setInt(2, user.getId());
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Ошибка обновления роли пользователя: " + e.getMessage());
+    }
   }
 }

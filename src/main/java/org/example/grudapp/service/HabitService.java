@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,6 +151,27 @@ public class HabitService {
       statement.executeUpdate();
     } catch (SQLException e) {
       System.out.println("Ошибка удаления привычки: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
+      }
+    }
+  }
+
+  public void saveHabit(Habit habit) {
+    String query = "INSERT INTO habits (name, description, frequency, user_id) VALUES (?, ?, ?, ?)";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, habit.getName());
+      statement.setString(2, habit.getDescription());
+      statement.setString(3, habit.getFrequency());
+      statement.setInt(4, habit.getUser().getId());
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Ошибка сохранения привычки: " + e.getMessage());
     } finally {
       if (connection != null) {
         try {

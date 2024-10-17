@@ -10,7 +10,7 @@ public class Log {
   /**
    * Unique identifier for the log entry.
    */
-  private final int id;
+  private int id;
   /**
    * Date of the log entry.
    */
@@ -45,6 +45,10 @@ public class Log {
     this.user = user;
   }
 
+  public Log() {
+
+  }
+
   /**
    * Returns the unique ID for the log entry.
    *
@@ -54,6 +58,9 @@ public class Log {
     return id;
   }
 
+  public void setId(int id) {
+    this.id = id;
+  }
   /**
    * Returns the date of the log entry.
    *
@@ -80,6 +87,9 @@ public class Log {
     this.completed = completed;
   }
 
+  public void setHabit(Habit habit) {
+    this.habit = habit;
+  }
   /**
    * Returns the habit associated with the log entry.
    *

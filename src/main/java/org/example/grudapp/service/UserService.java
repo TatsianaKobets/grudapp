@@ -1,7 +1,12 @@
 package org.example.grudapp.service;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import org.example.grudapp.dbconnect.DatabaseConnector;
 import org.example.grudapp.model.Role;
 import org.example.grudapp.model.User;
 
@@ -9,7 +14,15 @@ import org.example.grudapp.model.User;
  * Provides services for managing users.
  */
 public class UserService {
+  private Connection connection;
 
+  public UserService() {
+    try {
+      connection = DatabaseConnector.getConnection();
+    } catch (SQLException e) {
+      System.out.println("Ошибка подключения к базе данных: " + e.getMessage());
+    }
+  }
   /**
    * List of all users.
    */
@@ -45,14 +58,29 @@ public class UserService {
    * @param name     the name of the user
    */
   public void registerUser(String email, String password, String name) {
-    User user = new User(users.size() + 1, email, password, name);
-    if (users.isEmpty()) {
-      user.setRole(Role.ADMIN);
-      System.out.println("Вам присвоена роль администратора");
-    } else {
-      user.setRole(Role.USER);
+    String query = "INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, email);
+      statement.setString(2, password);
+      statement.setString(3, name);
+      if (getUserCount() == 0) {
+        statement.setString(4, "ADMIN");
+        System.out.println("Вам присвоена роль администратора");
+      } else {
+        statement.setString(4, "USER");
+      }
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Ошибка регистрации пользователя: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
+      }
     }
-    users.put(user.getId(), user);
   }
 
   /**
@@ -63,10 +91,30 @@ public class UserService {
    * @return the authenticated user, or null if authentication fails
    */
   public User authenticateUser(String email, String password) {
-    for (User user : users.values()) {
-      if (user.getEmail().equals(email) && user.getPassword().equals(password)) {
+    String query = "SELECT * FROM users WHERE email = ? AND password = ?";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, email);
+      statement.setString(2, password);
+      ResultSet resultSet = statement.executeQuery();
+      if (resultSet.next()) {
+        User user = new User();
+        user.setId(resultSet.getInt("id"));
+        user.setEmail(resultSet.getString("email"));
+        user.setPassword(resultSet.getString("password"));
+        user.setName(resultSet.getString("name"));
+        user.setRole(Role.valueOf(resultSet.getString("role")));
         authenticatedUser = user;
         return user;
+      }
+    } catch (SQLException e) {
+      System.out.println("Ошибка аутентификации пользователя: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
       }
     }
     return null;
@@ -79,8 +127,33 @@ public class UserService {
    * @return the user, or null if not found
    */
   public User getUserById(int id) {
-    return users.get(id);
+    String query = "SELECT * FROM users WHERE id = ?";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setInt(1, id);
+      ResultSet resultSet = statement.executeQuery();
+      if (resultSet.next()) {
+        User user = new User();
+        user.setId(resultSet.getInt("id"));
+        user.setEmail(resultSet.getString("email"));
+        user.setPassword(resultSet.getString("password"));
+        user.setName(resultSet.getString("name"));
+        user.setRole(Role.valueOf(resultSet.getString("role")));
+        return user;
+      }
+    } catch (SQLException e) {
+      System.out.println("Ошибка получения пользователя по ID: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
+      }
+    }
+    return null;
   }
+
 
   /**
    * Returns a user by their email address.
@@ -89,9 +162,28 @@ public class UserService {
    * @return the user, or null if not found
    */
   public User getUserByEmail(String email) {
-    for (User user : users.values()) {
-      if (user.getEmail().equals(email)) {
+    String query = "SELECT * FROM users WHERE email = ?";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, email);
+      ResultSet resultSet = statement.executeQuery();
+      if (resultSet.next()) {
+        User user = new User();
+        user.setId(resultSet.getInt("id"));
+        user.setEmail(resultSet.getString("email"));
+        user.setPassword(resultSet.getString("password"));
+        user.setName(resultSet.getString("name"));
+        user.setRole(Role.valueOf(resultSet.getString("role")));
         return user;
+      }
+    } catch (SQLException e) {
+      System.out.println("Ошибка получения пользователя по email: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
       }
     }
     return null;
@@ -103,15 +195,26 @@ public class UserService {
    * @param user the user to edit
    */
   public void editUserProfile(User user) {
-    for (User existingUser : users.values()) {
-      if (existingUser.getId() == user.getId()) {
-        existingUser.setName(user.getName());
-        existingUser.setEmail(user.getEmail());
-        existingUser.setPassword(user.getPassword());
-        break;
+    String query = "UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, user.getName());
+      statement.setString(2, user.getEmail());
+      statement.setString(3, user.getPassword());
+      statement.setInt(4, user.getId());
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Ошибка редактирования профиля пользователя: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
       }
     }
   }
+
 
   /**
    * Resets a user's password.
@@ -120,12 +223,22 @@ public class UserService {
    */
   public void resetPassword(String email) {
     String newPassword = generatePassword();
-    User user = getUserByEmail(email);
-    if (user != null) {
-      user.setPassword(newPassword);
+    String query = "UPDATE users SET password = ? WHERE email = ?";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, newPassword);
+      statement.setString(2, email);
+      statement.executeUpdate();
       System.out.println("Новый пароль: " + newPassword);
-    } else {
-      System.out.println("Пользователь с email " + email + " не найден");
+    } catch (SQLException e) {
+      System.out.println("Ошибка сброса пароля: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
+      }
     }
   }
 
@@ -149,11 +262,45 @@ public class UserService {
    * @param email the email address of the user to delete
    */
   public void deleteUser(String email) {
-    for (User user : users.values()) {
-      if (user.getEmail().equals(email)) {
-        users.remove(user.getId());
-        break;
+    String query = "DELETE FROM users WHERE email = ?";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, email);
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Ошибка удаления пользователя: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
       }
     }
+  }
+  /**
+   * Returns the number of users in the database.
+   *
+   * @return the number of users
+   */
+  public int getUserCount() {
+    String query = "SELECT COUNT(*) FROM users";
+    try (PreparedStatement statement = connection.prepareStatement(query)) {
+      ResultSet resultSet = statement.executeQuery();
+      if (resultSet.next()) {
+        return resultSet.getInt(1);
+      }
+    } catch (SQLException e) {
+      System.out.println("Ошибка получения количества пользователей: " + e.getMessage());
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
+        }
+      }
+    }
+    return 0;
   }
 }
