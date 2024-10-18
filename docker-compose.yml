@@ -1,24 +1,41 @@
 version: "3.9"
 services:
-  postgres:
+  db:
     image: postgres:13.3
+    container_name: postgres
     environment:
-      POSTGRES_DB: "mydb"
-      POSTGRES_USER: "user"
-      POSTGRES_PASSWORD: "password"
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=user
+      - POSTGRES_DB=mydb
+      - PGDATA=/var/lib/postgresql/data
+    volumes:
+      - ./db/shortcut/data:/var/lib/postgresql/data
+    restart: always
     ports:
       - "5432:5432"
   liquibase:
-    image: liquibase/liquibase:latest
-    depends_on:
-      - postgres
-    volumes:
-      - ./src/main/resources/db/changelog:/liquibase/changelog
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: liquibase:4.21.1
     environment:
-      DATABASE_URL: "jdbc:postgresql://postgres:5432/mydb"
-      DATABASE_USERNAME: "user"
-      DATABASE_PASSWORD: "password"
-   # command: liquibase update --changeLogFile=/liquibase/changelog/changelog.xml
-  #command: liquibase update --url=jdbc:postgresql://postgres:5432/mydb --username=user --password=password --changeLogFile=/liquibase/changelog/changelog.xml
-    #command: liquibase update --url=jdbc:postgresql://postgres:5432/mydb --username=user --password=password --changeLogFile=/src/main/resources/db/changelog/changelog.xml
-    command: liquibase --changeLogFile=changelog.xml update
+      - JDBC_URL=jdbc:postgresql://db:5432/mydb
+      - JDBC_USERNAME=user
+      - JDBC_PASSWORD=password
+      - JDBC_DRIVER=org.postgresql.Driver
+    container_name: liquibase
+    depends_on:
+      - db
+  myapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_URL=jdbc:postgresql://db:5432/mydb
+      - DB_USERNAME=user
+      - DB_PASSWORD=password
+      - DB_DRIVER=org.postgresql.Driver
+    container_name: myapp
+    depends_on:
+      - db
+      - liquibase
