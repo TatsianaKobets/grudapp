@@ -8,3 +8,17 @@ services:
       POSTGRES_PASSWORD: "password"
     ports:
       - "5432:5432"
+  liquibase:
+    image: liquibase/liquibase:latest
+    depends_on:
+      - postgres
+    volumes:
+      - ./src/main/resources/db/changelog:/liquibase/changelog
+    environment:
+      DATABASE_URL: "jdbc:postgresql://postgres:5432/mydb"
+      DATABASE_USERNAME: "user"
+      DATABASE_PASSWORD: "password"
+   # command: liquibase update --changeLogFile=/liquibase/changelog/changelog.xml
+  #command: liquibase update --url=jdbc:postgresql://postgres:5432/mydb --username=user --password=password --changeLogFile=/liquibase/changelog/changelog.xml
+    #command: liquibase update --url=jdbc:postgresql://postgres:5432/mydb --username=user --password=password --changeLogFile=/src/main/resources/db/changelog/changelog.xml
+    command: liquibase --changeLogFile=changelog.xml update

@@ -29,4 +29,5 @@ ENV DB_USERNAME=user
 ENV DB_PASSWORD=password
 
 # Run the application when the container starts
+#ENTRYPOINT ["java", "-jar", "/app/target/grudapp-1.0-SNAPSHOT.jar"]
 ENTRYPOINT ["java", "-jar", "/app/target/grudapp-1.0-SNAPSHOT.jar"]
