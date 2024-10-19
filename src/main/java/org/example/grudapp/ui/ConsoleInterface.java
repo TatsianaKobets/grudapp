@@ -415,54 +415,59 @@ public class ConsoleInterface {
     int habitId = scanner.nextInt();
 
     // Считываем оставшийся символ новой строки
-    scanner.nextLine(); // Это может помочь избежать проблем со следующими вызовами nextLine()
+    scanner.nextLine();
 
     // Запрашиваем у пользователя дату выполнения
     System.out.println("Введите дату выполнения (например yyyy-MM-dd):");
-    String logDateString = scanner.nextLine(); // Читаем дату как строку
+    String logDateString = scanner.nextLine();
 
     // Обрабатываем дату
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-    Date logDate = null;
+    Date logDate;
     try {
-      logDate = sdf.parse(logDateString); // Парсим строку в дату
+      logDate = sdf.parse(logDateString);
     } catch (ParseException e) {
       System.out.println("Ошибка: некорректная дата. " + e.getMessage());
-      return; // Завершаем выполнение метода, если произошла ошибка
+      return;
     }
 
-    // Запрашиваем, выполнено ли задание
     System.out.println("Введите выполнено ли задание (true/false):");
     boolean completed = scanner.nextBoolean();
 
     // Получаем аутентифицированного пользователя
     User user = userService.getAuthenticatedUser();
-    // Находим привычку по введенному ID среди привычек пользователя
-    Habit habit = habitService.getHabitsByUser(user).get(habitId - 1);
-    for (Habit h : habitService.getHabits().values()) {
-      if (h.getId() == habitId) {
-        habit = h;
-        break;
-      }
+    // Получаем привычки пользователя
+    List<Habit> habits = habitService.getHabitsByUser(user);
+
+    // Проверяем, содержит ли пользователь эту привычку
+    Habit habit = habits.stream()
+        .filter(h -> h.getId() == habitId)
+        .findFirst()
+        .orElse(null);
+
+    if (habit == null) {
+      System.out.println("Некорректный ID привычки. Пожалуйста, введите корректный ID.");
+      return;
     }
 
-    // Проверяем, найдена ли привычка
-    if (habit != null) {
-      // Создание лога
-      logService.createLog(logDate, completed, habit, user);
-      System.out.println("Лог успешно добавлен.");
-    } else {
-      System.out.println("Привычка не найдена.");
-    }
+    // Создание лога
+    logService.createLog(logDate, completed, habit, user);
+    System.out.println("Лог успешно добавлен.");
   }
 
   private void viewLogs() {
-    if (logService.getLogs().isEmpty()) {
+    User currentUser = userService.getAuthenticatedUser();
+    if (currentUser == null) {
+      System.out.println("Ошибка: пользователь не авторизован.");
+      return;
+    }
+
+    List<Log> logs = logService.getLogsByUser(currentUser); // Получаем логи для текущего пользователя
+    if (logs.isEmpty()) {
       System.out.println("У вас нет отметок.");
       return;
     }
-    Map<Integer, Log> logs = logService.getLogs();
-    for (Log log : logs.values()) {
+    for (Log log : logs) {
       System.out.println("Дата выполнения: " + log.getLogDate());
       System.out.println("Название привычки: " + log.getHabit().getName());
       System.out.println("Выполнено: " + (log.isCompleted() ? "Да" : "Нет"));

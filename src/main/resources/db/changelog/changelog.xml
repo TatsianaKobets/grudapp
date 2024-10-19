@@ -14,4 +14,8 @@
   <include file="007-create-table-logs.xml" relativeToChangelogFile="true"/>
   <include file="008-insert-data-logs.xml" relativeToChangelogFile="true"/>
   <include file="009-alter-sequence-logs.xml" relativeToChangelogFile="true"/>
+  <include file="010-create-table-notifications.xml" relativeToChangelogFile="true"/>
+  <include file="011-add-foreign-keys-notifications.xml" relativeToChangelogFile="true"/>
+  <include file="012-insert-data-notifications.xml" relativeToChangelogFile="true"/>
+  <include file="013-alter-sequence-notifications.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

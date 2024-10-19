@@ -43,6 +43,7 @@ public class LogService {
     String query = "INSERT INTO logs (log_date, completed, habit_id, user_id) VALUES (?, ?, ?, ?) RETURNING id";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
+
       // Установка параметров
       statement.setDate(1, new java.sql.Date(logDate.getTime()));
       statement.setBoolean(2, completed);
@@ -53,14 +54,45 @@ public class LogService {
       ResultSet rs = statement.executeQuery();
       if (rs.next()) {
         int generatedId = rs.getInt(1);
-        // Здесь можно создать объект Log и добавить его в логи, если это нужно
+        // Создаем новый объект Log и добавляем его в локальную коллекцию
+        Log newLog = new Log();
+        newLog.setId(generatedId);
+        newLog.setLogDate(logDate);
+        newLog.setCompleted(completed);
+        newLog.setHabit(habit);
+        newLog.setUser(user);
+        logs.put(generatedId, newLog); // Добавляем лог в локальную коллекцию
       }
     } catch (SQLException e) {
       System.out.println("Ошибка создания логов: " + e.getMessage());
     }
   }
 
+  public List<Log> getLogsByUser(User user) {
+    List<Log> userLogs = new ArrayList<>();
+    String query = "SELECT * FROM logs WHERE user_id = ?";
 
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = conn.prepareStatement(query)) {
+
+      statement.setInt(1, user.getId());
+      ResultSet resultSet = statement.executeQuery();
+
+      while (resultSet.next()) {
+        Log log = new Log();
+        log.setId(resultSet.getInt("id"));
+        log.setLogDate(resultSet.getDate("log_date"));
+        log.setCompleted(resultSet.getBoolean("completed"));
+        log.setHabit(new Habit(resultSet.getInt("habit_id"))); // Предполагаю, что вы имеете этот конструктор
+        log.setUser(user);
+        userLogs.add(log);
+      }
+    } catch (SQLException e) {
+      System.out.println("Ошибка получения логов пользователя: " + e.getMessage());
+    }
+
+    return userLogs;
+  }
   /**
    * Updates an existing log.
    *

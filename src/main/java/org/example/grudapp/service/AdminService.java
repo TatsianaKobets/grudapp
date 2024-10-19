@@ -6,7 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
-import org.example.grudapp.dbconnect.DatabaseConnector;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.Role;
 import org.example.grudapp.model.User;
@@ -15,6 +14,7 @@ import org.example.grudapp.model.User;
  * Provides services for managing administrators.
  */
 public class AdminService {
+
   private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
   private static final String USERNAME = "postgres";
   private static final String PASSWORD = "password";
