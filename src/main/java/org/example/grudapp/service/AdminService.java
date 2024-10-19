@@ -1,6 +1,7 @@
 package org.example.grudapp.service;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashSet;
@@ -14,43 +15,28 @@ import org.example.grudapp.model.User;
  * Provides services for managing administrators.
  */
 public class AdminService {
+  private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
+  private static final String USERNAME = "postgres";
+  private static final String PASSWORD = "password";
 
-  HabitService habitService;
-  private Connection connection;
-
-  public AdminService() {
-    try {
-      connection = DatabaseConnector.getConnection();
-    } catch (SQLException e) {
-      System.out.println("Ошибка подключения к базе данных: " + e.getMessage());
-    }
-  }
-
-  /**
-   * Set of all admins. Initially empty.
-   */
+  // Set of all admins and users
   private Set<User> admins = new HashSet<>();
-  /**
-   * Set of all users.
-   */
   private Set<User> users = new HashSet<>();
+  private Set<Habit> habits = new HashSet<>();
 
+  // Get all habits
   public Set<Habit> getHabits() {
     return habits;
   }
 
-  /**
-   * Set of all habits.
-   */
-  private Set<Habit> habits = new HashSet<>();
-
-
+  // Constructor
   public AdminService(Set<User> admins, Set<User> users, Set<Habit> habits) {
     this.admins = admins;
     this.users = users;
     this.habits = habits;
   }
 
+  // Getters and Setters
   public Set<User> getAdmins() {
     return admins;
   }
@@ -67,80 +53,108 @@ public class AdminService {
     this.users = users;
   }
 
+  // Add user method
   public void addUser(User user) {
     admins.add(user);
     users.add(user);
     saveUser(user);
   }
 
+  // Remove user method
   public void removeUser(User user) {
     admins.remove(user);
     users.remove(user);
     deleteUser(user);
   }
 
-  public void addHabit(Habit habit) {
-    habits.add(habit);
-    habitService.saveHabit(habit);
+  // Save user to the database
+  private void saveUser(User user) {
+    String query = "INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)";
+    try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, user.getEmail());
+      statement.setString(2, user.getPassword());
+      statement.setString(3, user.getName());
+      statement.setString(4, user.getRole().toString());
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Error saving user: " + e.getMessage());
+    }
   }
 
-  public void removeHabit(Habit habit) {
-    habits.remove(habit);
-    habitService.deleteHabit(habit.getId());
+  // Delete user from the database
+  private void deleteUser(User user) {
+    String query = "DELETE FROM users WHERE id = ?";
+    try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setInt(1, user.getId());
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Error deleting user: " + e.getMessage());
+    }
   }
 
-  /**
-   * Assigns the admin role to a user.
-   *
-   * @param user the user to assign the admin role to
-   */
+  // Assign admin role
   public void assignAdminRole(User user) {
     user.setRole(Role.ADMIN);
     admins.add(user);
     updateUserRole(user);
   }
 
-  /**
-   * Assigns the user role to a user.
-   *
-   * @param user the user to assign the user role to
-   */
+  // Assign user role
   public void assignUserRole(User user) {
     user.setRole(Role.USER);
     admins.remove(user);
     updateUserRole(user);
   }
 
-  private void saveUser(User user) {
-    String query = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setString(1, user.getName());
-      statement.setString(2, user.getPassword());
-      statement.setString(3, user.getRole().toString());
-      statement.executeUpdate();
-    } catch (SQLException e) {
-      System.out.println("Ошибка сохранения пользователя: " + e.getMessage());
-    }
-  }
-
-  private void deleteUser(User user) {
-    String query = "DELETE FROM users WHERE id = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setInt(1, user.getId());
-      statement.executeUpdate();
-    } catch (SQLException e) {
-      System.out.println("Ошибка удаления пользователя: " + e.getMessage());
-    }
-  }
-
+  // Update user role in the database
   private void updateUserRole(User user) {
     String query = "UPDATE users SET role = ? WHERE id = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
+    try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = connection.prepareStatement(query)) {
       statement.setString(1, user.getRole().toString());
       statement.setInt(2, user.getId());
       statement.executeUpdate();
     } catch (SQLException e) {
-      System.out.println("Ошибка обновления роли пользователя: " + e.getMessage());
+      System.out.println("Error updating user role: " + e.getMessage());
+    }
+  }
+
+  // Add habit method
+  public void addHabit(Habit habit) {
+    habits.add(habit);
+    saveHabit(habit);
+  }
+
+  // Remove habit method
+  public void removeHabit(Habit habit) {
+    habits.remove(habit);
+    deleteHabit(habit.getId());
+  }
+
+  // Save habit to the database
+  private void saveHabit(Habit habit) {
+    String query = "INSERT INTO habits (name, description) VALUES (?, ?)";
+    try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setString(1, habit.getName());
+      statement.setString(2, habit.getDescription());
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Error saving habit: " + e.getMessage());
+    }
+  }
+
+  // Delete habit from the database
+  private void deleteHabit(int id) {
+    String query = "DELETE FROM habits WHERE id = ?";
+    try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = connection.prepareStatement(query)) {
+      statement.setInt(1, id);
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Error deleting habit: " + e.getMessage());
     }
   }
 }
