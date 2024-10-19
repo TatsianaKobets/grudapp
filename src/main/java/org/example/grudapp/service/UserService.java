@@ -1,12 +1,13 @@
 package org.example.grudapp.service;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-import org.example.grudapp.dbconnect.DatabaseConnector;
 import org.example.grudapp.model.Role;
 import org.example.grudapp.model.User;
 
@@ -14,207 +15,195 @@ import org.example.grudapp.model.User;
  * Provides services for managing users.
  */
 public class UserService {
-  private Connection connection;
 
-  public UserService() {
-    try {
-      connection = DatabaseConnector.getConnection();
-    } catch (SQLException e) {
-      System.out.println("Ошибка подключения к базе данных: " + e.getMessage());
-    }
-  }
-  /**
-   * List of all users.
-   */
   private Map<Integer, User> users = new HashMap<>();
   /**
    * The currently authenticated user.
    */
   private User authenticatedUser;
 
+  private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
+  private static final String USERNAME = "postgres";
+  private static final String PASSWORD = "password";
+
   /**
-   * Returns the list of all users.
+   * Получить всех пользователей.
    *
-   * @return the map of users, where the key is the user ID and the value is the user object
+   * @return Мапа пользователей, где ключ - ID пользователя, значение - объект пользователя
    */
   public Map<Integer, User> getUsers() {
+    Map<Integer, User> users = new HashMap<>();
+    String sql = "SELECT * FROM users";
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        ResultSet rs = pstmt.executeQuery()) {
+
+      while (rs.next()) {
+        User user = new User(
+            rs.getInt("id"),
+            rs.getString("email"),
+            rs.getString("password"),
+            rs.getString("name")
+        );
+        user.setRole(Role.valueOf(rs.getString("role"))); // Преобразование значения роли
+        users.put(user.getId(), user);
+      }
+    } catch (SQLException e) {
+      System.out.println("Ошибка при получении пользователей: " + e.getMessage());
+    }
+
     return users;
   }
 
+
+  // Метод для возвращения текущего аутентифицированного пользователя
+  public User getAuthenticatedUser(String email) {
+    return getUserByEmail(
+        email); // Если у вас есть метод getUserByEmail, можно использовать его здесь
+  }
+
+  // Метод поиска пользователя по email
+  public User getUserByEmail(String email) {
+    String sql = "SELECT * FROM users WHERE email = ?";
+    User user = null;
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, email);
+      ResultSet rs = pstmt.executeQuery();
+
+      if (rs.next()) {
+        user = new User(
+            rs.getInt("id"),
+            rs.getString("email"),
+            rs.getString("password"),
+            rs.getString("name")
+        );
+        user.setRole(Role.valueOf(rs.getString("role")));
+      }
+
+    } catch (SQLException e) {
+      System.out.println("Ошибка при получении пользователя по email: " + e.getMessage());
+    }
+
+    return user;
+  }
+
   /**
-   * Returns the currently authenticated user.
+   * Регистрация нового пользователя.
    *
-   * @return the authenticated user
+   * @param email    email пользователя
+   * @param password пароль пользователя
+   * @param name     имя пользователя
    */
+  public int registerUser(String email, String password, String name) {
+    String sql = "INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?) RETURNING id";
+    Role role = getUsers().isEmpty() ? Role.ADMIN : Role.USER;
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+      pstmt.setString(1, email);
+      pstmt.setString(2, password);
+      pstmt.setString(3, name);
+      pstmt.setString(4, role.toString());
+
+      pstmt.executeUpdate();
+      ResultSet rs = pstmt.getGeneratedKeys();
+      if (rs.next()) {
+        return rs.getInt(1);
+      }
+
+    } catch (SQLException e) {
+      System.out.println("Ошибка при регистрации пользователя: " + e.getMessage());
+    }
+
+    return -1; // Если произошла ошибка
+  }
+
   public User getAuthenticatedUser() {
+    return authenticatedUser; // Возврат аутентифицированного пользователя
+  }
+
+  public User authenticateUser(String email, String password) {
+    String sql = "SELECT * FROM users WHERE email = ? AND password = ?";
+    User authenticatedUser = null;
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, email);
+      pstmt.setString(2, password);
+      ResultSet rs = pstmt.executeQuery();
+      if (rs.next()) {
+        authenticatedUser = new User(
+            rs.getInt("id"),
+            rs.getString("email"),
+            rs.getString("password"),
+            rs.getString("name")
+        );
+        authenticatedUser.setRole(Role.valueOf(rs.getString("role")));
+        this.authenticatedUser = authenticatedUser; // Сохраняем аутентифицированного пользователя
+      }
+    } catch (SQLException e) {
+      System.out.println("Ошибка при аутентификации пользователя: " + e.getMessage());
+    }
     return authenticatedUser;
   }
 
   /**
-   * Registers a new user.
+   * Получить пользователя по ID.
    *
-   * @param email    the email address of the user
-   * @param password the password of the user
-   * @param name     the name of the user
-   */
-  public void registerUser(String email, String password, String name) {
-    String query = "INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setString(1, email);
-      statement.setString(2, password);
-      statement.setString(3, name);
-      if (getUserCount() == 0) {
-        statement.setString(4, "ADMIN");
-        System.out.println("Вам присвоена роль администратора");
-      } else {
-        statement.setString(4, "USER");
-      }
-      statement.executeUpdate();
-    } catch (SQLException e) {
-      System.out.println("Ошибка регистрации пользователя: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
-    }
-  }
-
-  /**
-   * Authenticates a user.
-   *
-   * @param email    the email address of the user
-   * @param password the password of the user
-   * @return the authenticated user, or null if authentication fails
-   */
-  public User authenticateUser(String email, String password) {
-    String query = "SELECT * FROM users WHERE email = ? AND password = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setString(1, email);
-      statement.setString(2, password);
-      ResultSet resultSet = statement.executeQuery();
-      if (resultSet.next()) {
-        User user = new User();
-        user.setId(resultSet.getInt("id"));
-        user.setEmail(resultSet.getString("email"));
-        user.setPassword(resultSet.getString("password"));
-        user.setName(resultSet.getString("name"));
-        user.setRole(Role.valueOf(resultSet.getString("role")));
-        authenticatedUser = user;
-        return user;
-      }
-    } catch (SQLException e) {
-      System.out.println("Ошибка аутентификации пользователя: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Returns a user by their ID.
-   *
-   * @param id the ID of the user
-   * @return the user, or null if not found
+   * @param id ID пользователя
+   * @return пользователь или null
    */
   public User getUserById(int id) {
-    String query = "SELECT * FROM users WHERE id = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setInt(1, id);
-      ResultSet resultSet = statement.executeQuery();
-      if (resultSet.next()) {
-        User user = new User();
-        user.setId(resultSet.getInt("id"));
-        user.setEmail(resultSet.getString("email"));
-        user.setPassword(resultSet.getString("password"));
-        user.setName(resultSet.getString("name"));
-        user.setRole(Role.valueOf(resultSet.getString("role")));
-        return user;
+    String sql = "SELECT * FROM users WHERE id = ?";
+    User user = null;
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setInt(1, id);
+      ResultSet rs = pstmt.executeQuery();
+
+      if (rs.next()) {
+        user = new User(
+            rs.getInt("id"),
+            rs.getString("email"),
+            rs.getString("password"),
+            rs.getString("name")
+        );
+        user.setRole(Role.valueOf(rs.getString("role")));
       }
+
     } catch (SQLException e) {
-      System.out.println("Ошибка получения пользователя по ID: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
+      System.out.println("Ошибка при получении пользователя: " + e.getMessage());
     }
-    return null;
+
+    return user;
   }
 
 
-  /**
-   * Returns a user by their email address.
-   *
-   * @param email the email address of the user
-   * @return the user, or null if not found
-   */
-  public User getUserByEmail(String email) {
-    String query = "SELECT * FROM users WHERE email = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setString(1, email);
-      ResultSet resultSet = statement.executeQuery();
-      if (resultSet.next()) {
-        User user = new User();
-        user.setId(resultSet.getInt("id"));
-        user.setEmail(resultSet.getString("email"));
-        user.setPassword(resultSet.getString("password"));
-        user.setName(resultSet.getString("name"));
-        user.setRole(Role.valueOf(resultSet.getString("role")));
-        return user;
-      }
-    } catch (SQLException e) {
-      System.out.println("Ошибка получения пользователя по email: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Edits a user's profile.
-   *
-   * @param user the user to edit
-   */
+  // Обновление профиля пользователя
   public void editUserProfile(User user) {
-    String query = "UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setString(1, user.getName());
-      statement.setString(2, user.getEmail());
-      statement.setString(3, user.getPassword());
-      statement.setInt(4, user.getId());
-      statement.executeUpdate();
+    String sql = "UPDATE users SET email = ?, password = ?, name = ? WHERE id = ?";
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, user.getEmail());
+      pstmt.setString(2, user.getPassword());
+      pstmt.setString(3, user.getName());
+      pstmt.setInt(4, user.getId());
+
+      pstmt.executeUpdate();
+      System.out.println("Профиль пользователя успешно обновлен.");
     } catch (SQLException e) {
-      System.out.println("Ошибка редактирования профиля пользователя: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
+      System.out.println("Ошибка при обновлении пользователя: " + e.getMessage());
     }
   }
-
 
   /**
    * Resets a user's password.
@@ -223,22 +212,12 @@ public class UserService {
    */
   public void resetPassword(String email) {
     String newPassword = generatePassword();
-    String query = "UPDATE users SET password = ? WHERE email = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setString(1, newPassword);
-      statement.setString(2, email);
-      statement.executeUpdate();
+    User user = getUserByEmail(email);
+    if (user != null) {
+      user.setPassword(newPassword);
       System.out.println("Новый пароль: " + newPassword);
-    } catch (SQLException e) {
-      System.out.println("Ошибка сброса пароля: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
+    } else {
+      System.out.println("Пользователь с email " + email + " не найден");
     }
   }
 
@@ -257,50 +236,27 @@ public class UserService {
   }
 
   /**
-   * Deletes a user by their email address.
+   * Удалить пользователя по email.
    *
-   * @param email the email address of the user to delete
+   * @param email email пользователя
    */
   public void deleteUser(String email) {
-    String query = "DELETE FROM users WHERE email = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setString(1, email);
-      statement.executeUpdate();
+    String sql = "DELETE FROM users WHERE email = ?";
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, email);
+
+      int affectedRows = pstmt.executeUpdate();
+      if (affectedRows > 0) {
+        System.out.println("Пользователь с email " + email + " успешно удален.");
+      } else {
+        System.out.println("Пользователь с email " + email + " не найден.");
+      }
+
     } catch (SQLException e) {
-      System.out.println("Ошибка удаления пользователя: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
+      System.out.println("Ошибка при удалении пользователя: " + e.getMessage());
     }
-  }
-  /**
-   * Returns the number of users in the database.
-   *
-   * @return the number of users
-   */
-  public int getUserCount() {
-    String query = "SELECT COUNT(*) FROM users";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      ResultSet resultSet = statement.executeQuery();
-      if (resultSet.next()) {
-        return resultSet.getInt(1);
-      }
-    } catch (SQLException e) {
-      System.out.println("Ошибка получения количества пользователей: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
-    }
-    return 0;
   }
 }
