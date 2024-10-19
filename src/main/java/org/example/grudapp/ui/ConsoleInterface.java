@@ -105,10 +105,10 @@ public class ConsoleInterface {
         deleteUser(scanner);
         break;
       case 4:
-        createHabit(scanner);
+        createHabit(scanner, userService.getAuthenticatedUser());
         break;
       case 5:
-        viewHabits(scanner);
+        viewHabits(scanner, userService.getAuthenticatedUser());
         break;
       case 6:
         deleteHabit(scanner);
@@ -308,16 +308,17 @@ public class ConsoleInterface {
     System.out.println("Пользователь с email " + email + " успешно удален");
   }
 
-  private void createHabit(Scanner scanner) {
-    User user = userService.getAuthenticatedUser(scanner.nextLine());
+  private void createHabit(Scanner scanner, User user) {
+    // Убедимся, что пользователь действительно авторизован
     if (user == null) {
-      System.out.println("Пожалуйста, авторизуйтесь перед созданием привычки.");
+      System.out.println("Ошибка: пользователь не авторизован.");
       return;
     }
     System.out.println("Введите название привычки:");
     String habitName = scanner.next();
     System.out.println("Введите описание привычки:");
     String habitDescription = scanner.next();
+
     System.out.println("Введите частоту выполнения:");
     System.out.println("1. Ежедневно");
     System.out.println("2. Еженедельно");
@@ -325,24 +326,25 @@ public class ConsoleInterface {
     String frequency = "";
     switch (choice) {
       case 1:
-        frequency = "daily";
+        frequency = "DAILY";
         break;
       case 2:
-        frequency = "weekly";
+        frequency = "WEEKLY";
         break;
       default:
         System.out.println(
             "Неправильный выбор. Частота выполнения будет установлена как ежедневно.");
-        frequency = "daily";
+        frequency = "DAILY";
     }
 
+    // Создание привычки с переданными параметрами
     habitService.createHabit(habitName, habitDescription, frequency, user);
   }
 
-  private void viewHabits(Scanner scanner) {
-    User user = userService.getAuthenticatedUser(scanner.nextLine());
+  private void viewHabits(Scanner scanner, User user) {
+    // Убедимся, что пользователь действительно авторизован
     if (user == null) {
-      System.out.println("Пожалуйста, авторизуйтесь перед просмотром привычек.");
+      System.out.println("Ошибка: пользователь не авторизован.");
       return;
     }
 
@@ -411,23 +413,32 @@ public class ConsoleInterface {
   private void createLog(Scanner scanner) {
     System.out.println("Введите ID привычки:");
     int habitId = scanner.nextInt();
-    scanner.nextLine(); // Пропускаем остаток строки
 
+    // Считываем оставшийся символ новой строки
+    scanner.nextLine(); // Это может помочь избежать проблем со следующими вызовами nextLine()
+
+    // Запрашиваем у пользователя дату выполнения
     System.out.println("Введите дату выполнения (например yyyy-MM-dd):");
     String logDateString = scanner.nextLine(); // Читаем дату как строку
 
+    // Обрабатываем дату
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     Date logDate = null;
     try {
       logDate = sdf.parse(logDateString); // Парсим строку в дату
     } catch (ParseException e) {
       System.out.println("Ошибка: некорректная дата. " + e.getMessage());
-      return;
+      return; // Завершаем выполнение метода, если произошла ошибка
     }
+
+    // Запрашиваем, выполнено ли задание
     System.out.println("Введите выполнено ли задание (true/false):");
     boolean completed = scanner.nextBoolean();
 
-    Habit habit = null;
+    // Получаем аутентифицированного пользователя
+    User user = userService.getAuthenticatedUser();
+    // Находим привычку по введенному ID среди привычек пользователя
+    Habit habit = habitService.getHabitsByUser(user).get(habitId - 1);
     for (Habit h : habitService.getHabits().values()) {
       if (h.getId() == habitId) {
         habit = h;
@@ -435,11 +446,13 @@ public class ConsoleInterface {
       }
     }
 
+    // Проверяем, найдена ли привычка
     if (habit != null) {
-      User user = userService.getAuthenticatedUser(scanner.nextLine());
+      // Создание лога
       logService.createLog(logDate, completed, habit, user);
+      System.out.println("Лог успешно добавлен.");
     } else {
-      System.out.println("Привычка не найдена");
+      System.out.println("Привычка не найдена.");
     }
   }
 

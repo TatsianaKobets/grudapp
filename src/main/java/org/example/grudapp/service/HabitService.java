@@ -1,14 +1,15 @@
 package org.example.grudapp.service;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.example.grudapp.dbconnect.DatabaseConnector;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.User;
 
@@ -16,16 +17,6 @@ import org.example.grudapp.model.User;
  * Provides services for managing habits.
  */
 public class HabitService {
-
-  private Connection connection;
-
-  public HabitService() {
-    try {
-      connection = DatabaseConnector.getConnection();
-    } catch (SQLException e) {
-      System.out.println("Ошибка подключения к базе данных: " + e.getMessage());
-    }
-  }
 
   /**
    * Map of all habits. The key is the ID of the habit, and the value is the habit.
@@ -45,97 +36,80 @@ public class HabitService {
     this.habits = habits;
   }
 
-  /**
-   * Creates a new habit for a given user.
-   *
-   * @param name
-   * @param description
-   * @param frequency
-   * @param user
-   */
+  private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
+  private static final String USERNAME = "postgres";
+  private static final String PASSWORD = "password";
+
+  // Method to create a new habit
   public void createHabit(String name, String description, String frequency, User user) {
-    String query = "INSERT INTO habits (name, description, frequency, user_id) VALUES (?, ?, ?, ?)";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setString(1, name);
-      statement.setString(2, description);
-      statement.setString(3, frequency);
-      statement.setInt(4, user.getId());
-      statement.executeUpdate();
-    } catch (SQLException e) {
-      System.out.println("Ошибка создания привычки: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
+    String sql = "INSERT INTO habits (name, description, frequency, user_id, creation_date) VALUES (?, ?, ?, ?, ?) RETURNING id";
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, name);
+      pstmt.setString(2, description);
+      pstmt.setString(3, frequency);
+      pstmt.setLong(4, user.getId()); // Assuming User object has getId() method
+      pstmt.setTimestamp(5, new java.sql.Timestamp(System.currentTimeMillis()));
+
+      ResultSet rs = pstmt.executeQuery();
+      if (rs.next()) {
+        int generatedId = rs.getInt(1);
+        Habit habit = new Habit(generatedId, name, description, frequency, user, new Date());
+        user.getHabits().add(habit); // Add habit to user habits list
       }
+
+    } catch (SQLException e) {
+      System.out.println("Error while creating habit: " + e.getMessage());
     }
   }
 
-  /**
-   * Returns the list of habits for a given user.
-   *
-   * @param user the user to get habits for
-   * @return the list of habits for the user
-   */
+  // Get all habits for a user
   public List<Habit> getHabitsByUser(User user) {
-    List<Habit> habits = new ArrayList<>();
-    String query = "SELECT * FROM habits WHERE user_id = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setInt(1, user.getId());
-      try (ResultSet resultSet = statement.executeQuery()) {
-        while (resultSet.next()) {
-          Habit habit = new Habit();
-          habit.setId(resultSet.getInt("id"));
-          habit.setName(resultSet.getString("name"));
-          habit.setDescription(resultSet.getString("description"));
-          habit.setFrequency(resultSet.getString("frequency"));
-          habits.add(habit);
-        }
+    List<Habit> result = new ArrayList<>();
+    String sql = "SELECT * FROM habits WHERE user_id = ?";
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setLong(1, user.getId());
+      ResultSet rs = pstmt.executeQuery();
+
+      while (rs.next()) {
+        Habit habit = new Habit(
+            rs.getInt("id"),
+            rs.getString("name"),
+            rs.getString("description"),
+            rs.getString("frequency"),
+            user,
+            rs.getTimestamp("creation_date")
+        );
+        result.add(habit);
       }
     } catch (SQLException e) {
-      System.out.println("Ошибка получения привычек пользователя: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
+      System.out.println("Error while fetching habits: " + e.getMessage());
     }
-    return habits;
+
+    return result;
   }
 
-
-  /**
-   * Updates an existing habit.
-   *
-   * @param habitId     the ID of the habit to update
-   * @param name        the new name of the habit
-   * @param description the new description of the habit
-   * @param frequency   the new frequency of the habit
-   */
+  // Update an existing habit
   public void updateHabit(int habitId, String name, String description, String frequency) {
-    String query = "UPDATE habits SET name = ?, description = ?, frequency = ? WHERE id = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setString(1, name);
-      statement.setString(2, description);
-      statement.setString(3, frequency);
-      statement.setInt(4, habitId);
-      statement.executeUpdate();
+    String sql = "UPDATE habits SET name = ?, description = ?, frequency = ?, creation_date = ? WHERE id = ?";
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, name);
+      pstmt.setString(2, description);
+      pstmt.setString(3, frequency);
+      pstmt.setTimestamp(4, new java.sql.Timestamp(System.currentTimeMillis()));
+      pstmt.setInt(5, habitId);
+
+      pstmt.executeUpdate();
     } catch (SQLException e) {
-      System.out.println("Ошибка обновления привычки: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
+      System.out.println("Error while updating habit: " + e.getMessage());
     }
   }
 
@@ -144,42 +118,72 @@ public class HabitService {
    *
    * @param habitId the ID of the habit to delete
    */
+  // Delete an existing habit
   public void deleteHabit(int habitId) {
-    String query = "DELETE FROM habits WHERE id = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setInt(1, habitId);
-      statement.executeUpdate();
+    String sql = "DELETE FROM habits WHERE id = ?";
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setInt(1, habitId);
+      pstmt.executeUpdate();
     } catch (SQLException e) {
-      System.out.println("Ошибка удаления привычки: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
+      System.out.println("Error while deleting habit: " + e.getMessage());
     }
   }
 
+  /*ToDo
+  * public void deleteHabit(int habitId, int userId, String userRole) {
+      String sqlSelect = "SELECT user_id FROM habits WHERE id = ?";
+      String sqlDelete = "DELETE FROM habits WHERE id = ?";
+
+      try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+           PreparedStatement pstmtSelect = conn.prepareStatement(sqlSelect);
+           PreparedStatement pstmtDelete = conn.prepareStatement(sqlDelete)) {
+
+          pstmtSelect.setInt(1, habitId);
+          ResultSet rs = pstmtSelect.executeQuery();
+
+          if (rs.next()) {
+              int habitOwnerId = rs.getInt("user_id");
+
+              if ("admin".equalsIgnoreCase(userRole) || habitOwnerId == userId) {
+                  // User is an admin or the owner of the habit
+                  pstmtDelete.setInt(1, habitId);
+                  pstmtDelete.executeUpdate();
+                  System.out.println("Habit deleted successfully.");
+              } else {
+                  System.out.println("You do not have permission to delete this habit.");
+              }
+          } else {
+              System.out.println("Habit not found.");
+          }
+
+      } catch (SQLException e) {
+          System.out.println("Error while deleting habit: " + e.getMessage());
+      }
+  }*/
   public void saveHabit(Habit habit) {
-    String query = "INSERT INTO habits (name, description, frequency, user_id) VALUES (?, ?, ?, ?)";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
-      statement.setString(1, habit.getName());
-      statement.setString(2, habit.getDescription());
-      statement.setString(3, habit.getFrequency());
-      statement.setInt(4, habit.getUser().getId());
-      statement.executeUpdate();
+    String sql = "INSERT INTO habits (name, description, frequency, user_id, creation_date) VALUES (?, ?, ?, ?, ?) RETURNING id";
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, habit.getName());
+      pstmt.setString(2, habit.getDescription());
+      pstmt.setString(3, habit.getFrequency());
+      pstmt.setLong(4,
+          habit.getUser().getId()); // Предполагая, что у объекта Habit есть метод getUser()
+      pstmt.setTimestamp(5, new java.sql.Timestamp(System.currentTimeMillis()));
+
+      ResultSet rs = pstmt.executeQuery();
+      if (rs.next()) {
+        int generatedId = rs.getInt(1);
+        habit.setId(generatedId); // Предполагая, что у объекта Habit есть метод setId()
+        habit.getUser().getHabits().add(habit); // Добавляем привычку в список привычек пользователя
+      }
     } catch (SQLException e) {
       System.out.println("Ошибка сохранения привычки: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
     }
   }
 }

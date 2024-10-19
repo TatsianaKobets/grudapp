@@ -12,47 +12,7 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <!--suppress UnresolvedMavenProperty -->
-    <docker.db.url.jdbc>${JDBC_URL}</docker.db.url.jdbc>
-    <!--suppress Unresolved MavenProperty, UnresolvedMavenProperty -->
-    <docker.db.username.jdbc>${JDBC_USERNAME}</docker.db.username.jdbc>
-    <!--suppress UnresolvedMavenProperty -->
-    <docker.db.password.jdbc>${JDBC_PASSWORD}</docker.db.password.jdbc>
-    <!--suppress UnresolvedMavenProperty -->
-    <docker.db.driver.jdbc>${JDBC_DRIVER}</docker.db.driver.jdbc>
   </properties>
-  <profiles>
-    <profile>
-      <id>test</id>
-      <properties>
-        <liquibase.changeLogFile>db/changelog.xml</liquibase.changeLogFile>
-        <liquibase.url>jdbc:postgresql://127.0.0.1:5432/mydb</liquibase.url>
-        <liquibase.username>user</liquibase.username>
-        <liquibase.password>password</liquibase.password>
-      </properties>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-    </profile>
-    <profile>
-      <id>production</id>
-      <properties>
-        <liquibase.changeLogFile>db/changelog.xml</liquibase.changeLogFile>
-        <liquibase.url>jdbc:postgresql://127.0.0.1:5432/mydb</liquibase.url>
-        <liquibase.username>user</liquibase.username>
-        <liquibase.password>password</liquibase.password>
-      </properties>
-    </profile>
-    <profile>
-      <id>docker</id>
-      <properties>
-        <liquibase.changeLogFile>db/changelog.xml</liquibase.changeLogFile>
-        <liquibase.url>${docker.db.url.jdbc}</liquibase.url>
-        <liquibase.username>${docker.db.username.jdbc}</liquibase.username>
-        <liquibase.password>${docker.db.password.jdbc}</liquibase.password>
-      </properties>
-    </profile>
-  </profiles>
   <dependencies>
     <dependency>
       <groupId>javax.mail</groupId>
@@ -101,39 +61,4 @@
       <version>4.29.2</version>
     </dependency>
   </dependencies>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-            </manifest>
-            <manifestEntries>
-              <Main-Class>org.example.grudapp.MainClass</Main-Class>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.liquibase</groupId>
-        <artifactId>liquibase-maven-plugin</artifactId>
-        <version>4.29.2</version>
-        <configuration>
-          <changeLogFile>${liquibase.changeLogFile}</changeLogFile>
-          <url>${liquibase.url}</url>
-          <username>${liquibase.username}</username>
-          <password>${liquibase.password}</password>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>process-resources</phase>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

@@ -5,7 +5,9 @@
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd"
   logicalFilePath="db/changelog.xml">
-  <include file="001-create-table.xml" relativeToChangelogFile="true"/>
-  <include file="002-insert-data-users.xml" relativeToChangelogFile="true"/>
-
+  <changeSet id="006-alter-sequence-habits" author="tatsiana_kobets">
+    <sql>
+      ALTER SEQUENCE habits_id_seq RESTART WITH 3;
+    </sql>
+  </changeSet>
 </databaseChangeLog>
