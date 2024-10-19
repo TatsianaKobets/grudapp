@@ -1,34 +1,73 @@
 GrudApp
+Приложение для отслеживания привычек
+Описание проекта
+Данный проект предназначен для разработки серверной части многопользовательского приложения для
+отслеживания привычек. Основная задача приложения — позволить пользователям регистрироваться,
+создавать и управлять своими привычками, отслеживать их выполнение и анализировать прогресс.
 
-GrudApp is a habit tracking application that allows users to create and manage their habits, track
-their progress, and receive notifications. The application also features an admin panel for managing
-users and habits.
+Основные функции
+Регистрация и авторизация пользователей
 
-Features
+Регистрация новых пользователей с уникальным email и паролем.
+Вход в систему с проверкой email и пароля.
+Управление пользователями
 
-User registration and authentication
-Habit creation and management
-Log creation and management
-Notification system
-Admin panel for managing users and habits
-Statistics and progress tracking
-Technical Details
+Редактирование профиля пользователя (имя, email, пароль).
+Возможность удаления аккаунта.
+Опционально: сброс пароля через email.
+Управление привычками (CRUD)
 
-Built using Java
-Uses a console-based interface
-Utilizes a simple database for storing user and habit data
-Implements a notification system using email
-Setup and Installation
+Создание, редактирование и удаление привычек (название, описание, частота).
+Просмотр привычек с фильтрацией.
+Отслеживание выполнения привычек
 
-Clone the repository to your local machine
-Compile the Java code using javac
-Run the application using java
-Follow the in-app instructions to register and start using GrudApp
-Usage
+Пользователь может отметить выполнение привычки ежедневно.
+Хранение истории выполнения и статистики по привычкам.
+Статистика и аналитика
 
-Register a new user by selecting option 1 from the main menu
-Create a new habit by selecting option 7 from the main menu
-Log your progress by selecting option 10 from the main menu
-View your statistics and progress by selecting option 16 from the main menu
-Use the admin panel to manage users and habits by selecting option 15 from the main menu
-Known Issues
+Подсчет серий выполнения привычек.
+Процент успешного выполнения за определенный период.
+Формирование отчетов по прогрессу.
+Уведомления (опционально)
+
+API для отправки напоминаний пользователям.
+Интеграция с внешними сервисами для уведомлений.
+
+Администрирование
+Доступ администраторов к спискам пользователей и привычек.
+Возможность блокировки или удаления пользователей.
+
+Технические требования(Техзадание 1)
+Приложение написано на Java, консольное.
+Используются только чистая Java и коллекции (без фреймворков, таких как Spring).
+Данные хранятся в памяти и управляются через CRUD операции.
+Реализована авторизация и аутентификация пользователей.
+Написаны unit-тесты с покрытием кода не менее 75% (JUnit5, Mockito, AssertJ).
+
+Обновления (Техзадание 2)
+Теперь приложение обрабатывает данные с использованием PostgreSQL и Liquibase для миграции базы
+данных:
+Все сущности сохраняются в базе данных PostgreSQL.
+Используются sequence для генерации идентификаторов.
+Migrations Liquibase написаны в формате XML или YAML.
+Поддержка docker-compose для развертывания PostgreSQL с определенными параметрами.
+Приложение поддерживает конфиг-файлы для настройки подключения к БД и миграциям.
+Установка и запуск
+Для успешной установки и запуска приложения GrudApp, следуйте приведённым ниже шагам.
+
+Шаг 1: Клонирование репозитория
+git clone https://github.com/TatsianaKobets/grudapp.git
+cd grudapp
+Шаг 2: Сборка проекта
+mvn clean install
+Шаг 3: Настройка базы данных(PostgreSQL)
+Загрузите образ PostgreSQL (если он не установлен):
+docker pull postgres:latest
+Запустите контейнер PostgreSQL с заданными параметрами:
+docker run -d --name mypostgres -p 5432:5432 -e POSTGRES_PASSWORD=password postgres:latest
+Шаг 4: Настройка файла конфигурации
+Убедитесь, что в конфигурационном файле указаны правильные данные для вашего контейнера PostgreSQL.
+Шаг 5: Запуск миграций с помощью Liquibase
+liquibase update (пока реализовано в MainClass#main())
+Шаг 6: Запуск приложения
+java -jar target/grudapp-1.0-SNAPSHOT.jar
