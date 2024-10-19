@@ -21,10 +21,26 @@ public class UserService {
    * The currently authenticated user.
    */
   private User authenticatedUser;
+  private Connection connection;
+
 
   private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
   private static final String USERNAME = "postgres";
   private static final String PASSWORD = "password";
+
+  // Setter method for injecting connection
+  public void setConnection(Connection connection) {
+    this.connection = connection;
+  }
+
+  private Connection getConnection() throws SQLException {
+    // Return the injected connection if available; otherwise, create a new one
+    if (connection != null) {
+      return connection;
+    } else {
+      return DriverManager.getConnection(URL, USERNAME, PASSWORD);
+    }
+  }
 
   /**
    * Получить всех пользователей.
