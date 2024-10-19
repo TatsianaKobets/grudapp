@@ -36,6 +36,9 @@ public class AdminService {
     this.habits = habits;
   }
 
+  public AdminService() {
+  }
+
   // Getters and Setters
   public Set<User> getAdmins() {
     return admins;

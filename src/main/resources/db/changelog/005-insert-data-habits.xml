@@ -12,7 +12,7 @@
       <column name="description" value="Читать книги каждый день"/>
       <column name="frequency" value="daily"/>
       <column name="user_id" valueNumeric="1"/>
-      <column name="creation_date" valueDate="2023-10-01T00:00:00"/>
+      <column name="creation_date" valueDate="2024-10-01T00:00:00"/>
     </insert>
     <insert tableName="habits">
       <column name="id" valueNumeric="2"/>
@@ -20,7 +20,7 @@
       <column name="description" value="Участвовать в спортивных занятиях три раза в неделю"/>
       <column name="frequency" value="weekly"/>
       <column name="user_id" valueNumeric="2"/>
-      <column name="creation_date" valueDate="2023-10-01T00:00:00"/>
+      <column name="creation_date" valueDate="2024-10-01T00:00:00"/>
     </insert>
   </changeSet>
 </databaseChangeLog>

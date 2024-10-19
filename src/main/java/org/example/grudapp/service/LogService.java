@@ -1,6 +1,7 @@
 package org.example.grudapp.service;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,7 +10,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.example.grudapp.dbconnect.DatabaseConnector;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.Log;
 import org.example.grudapp.model.User;
@@ -19,16 +19,9 @@ import org.example.grudapp.model.User;
  */
 public class LogService {
 
-  private Connection connection;
-
-  public LogService() {
-    try {
-      connection = DatabaseConnector.getConnection();
-    } catch (SQLException e) {
-      System.out.println("Ошибка подключения к базе данных: " + e.getMessage());
-    }
-  }
-
+  private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
+  private static final String USERNAME = "postgres";
+  private static final String PASSWORD = "password";
   /**
    * Map of all logs. The key is the ID of the log, and the value is the log.
    */
@@ -47,23 +40,23 @@ public class LogService {
    * @param user      the user who created the log
    */
   public void createLog(Date logDate, boolean completed, Habit habit, User user) {
-    String query = "INSERT INTO logs (log_date, completed, habit_id, user_id) VALUES (?, ?, ?, ?)";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
+    String query = "INSERT INTO logs (log_date, completed, habit_id, user_id) VALUES (?, ?, ?, ?) RETURNING id";
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = conn.prepareStatement(query)) {
+      // Установка параметров
       statement.setDate(1, new java.sql.Date(logDate.getTime()));
       statement.setBoolean(2, completed);
       statement.setInt(3, habit.getId());
       statement.setInt(4, user.getId());
-      statement.executeUpdate();
+
+      // Выполнение запроса
+      ResultSet rs = statement.executeQuery();
+      if (rs.next()) {
+        int generatedId = rs.getInt(1);
+        // Здесь можно создать объект Log и добавить его в логи, если это нужно
+      }
     } catch (SQLException e) {
       System.out.println("Ошибка создания логов: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
     }
   }
 
@@ -77,21 +70,15 @@ public class LogService {
    */
   public void updateLog(int logId, Date logDate, boolean completed) {
     String query = "UPDATE logs SET log_date = ?, completed = ? WHERE id = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = conn.prepareStatement(query)) {
+      // Установка параметров
       statement.setDate(1, new java.sql.Date(logDate.getTime()));
       statement.setBoolean(2, completed);
       statement.setInt(3, logId);
       statement.executeUpdate();
     } catch (SQLException e) {
       System.out.println("Ошибка обновления логов: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
     }
   }
 
@@ -102,19 +89,12 @@ public class LogService {
    */
   public void deleteLog(int logId) {
     String query = "DELETE FROM logs WHERE id = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = conn.prepareStatement(query)) {
       statement.setInt(1, logId);
       statement.executeUpdate();
     } catch (SQLException e) {
       System.out.println("Ошибка удаления логов: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
     }
   }
 
@@ -126,15 +106,21 @@ public class LogService {
    */
   public int getStreak(Habit habit) {
     String query = "SELECT * FROM logs WHERE habit_id = ? ORDER BY log_date";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
+    int maxStreak = 0;
+    int streak = 0;
+    Date previousLogDate = null;
+
+    // Используем try-with-resources для автоматического управления соединением
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = conn.prepareStatement(query)) {
+
       statement.setInt(1, habit.getId());
       ResultSet resultSet = statement.executeQuery();
-      int streak = 0;
-      int maxStreak = 0;
-      Date previousLogDate = null;
+
       while (resultSet.next()) {
         Date logDate = resultSet.getDate("log_date");
         boolean completed = resultSet.getBoolean("completed");
+
         if (completed) {
           if (previousLogDate != null) {
             long diffInDays =
@@ -142,28 +128,20 @@ public class LogService {
             if (diffInDays == 1) {
               streak++;
             } else {
-              streak = 1;
+              streak = 1; // Сбрасываем счетчик при разрыве последовательности
             }
           } else {
-            streak = 1;
+            streak = 1; // Первый выполненный лог
           }
           maxStreak = Math.max(maxStreak, streak);
         }
-        previousLogDate = logDate;
+        previousLogDate = logDate; // Обновляем предыдущую дату лога
       }
-      return maxStreak;
     } catch (SQLException e) {
       System.out.println("Ошибка получения стика: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
     }
-    return 0;
+
+    return maxStreak; // Возвращаем максимальный стрик
   }
 
   /**
@@ -176,66 +154,70 @@ public class LogService {
    */
   public double getSuccessPercentage(Habit habit, Date startDate, Date endDate) {
     String query = "SELECT * FROM logs WHERE habit_id = ? AND log_date BETWEEN ? AND ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
+    int totalLogs = 0;
+    int successfulLogs = 0;
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = conn.prepareStatement(query)) {
+
       statement.setInt(1, habit.getId());
       statement.setDate(2, new java.sql.Date(startDate.getTime()));
       statement.setDate(3, new java.sql.Date(endDate.getTime()));
-      ResultSet resultSet = statement.executeQuery();
-      int totalLogs = 0;
-      int successfulLogs = 0;
-      while (resultSet.next()) {
-        boolean completed = resultSet.getBoolean("completed");
-        totalLogs++;
-        if (completed) {
-          successfulLogs++;
+
+      try (ResultSet resultSet = statement.executeQuery()) {
+        while (resultSet.next()) {
+          boolean completed = resultSet.getBoolean("completed");
+          totalLogs++;
+          if (completed) {
+            successfulLogs++;
+          }
         }
       }
-      if (totalLogs == 0) {
-        return 0.0;
-      }
-      return (double) successfulLogs / totalLogs * 100;
+
     } catch (SQLException e) {
       System.out.println("Ошибка получения процента успеха: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
     }
-    return 0.0; // возвращаем значение по умолчанию, если произошла ошибка
+
+    if (totalLogs == 0) {
+      return 0.0;
+    }
+    return (double) successfulLogs / totalLogs * 100;
   }
 
   public void addLog(Log log) {
-    String query = "INSERT INTO logs (log_date, completed, habit_id, user_id) VALUES (?, ?, ?, ?)";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
+    String query = "INSERT INTO logs (log_date, completed, habit_id, user_id) VALUES (?, ?, ?, ?) RETURNING id";
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = conn.prepareStatement(query)) {
+
+      // Set parameters for the prepared statement
       statement.setDate(1, new java.sql.Date(log.getLogDate().getTime()));
       statement.setBoolean(2, log.isCompleted());
       statement.setInt(3, log.getHabit().getId());
       statement.setInt(4, log.getUser().getId());
-      statement.executeUpdate();
+
+      // Execute the update and retrieve the generated ID
+      ResultSet rs = statement.executeQuery();
+      if (rs.next()) {
+        int generatedId = rs.getInt(1);
+        log.setId(generatedId);  // Assuming Log has a method to set its ID
+        // Optionally, you can add this log to your logs Map if you maintain it
+        logs.put(generatedId, log);
+      }
     } catch (SQLException e) {
       System.out.println("Ошибка добавления логов: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
     }
   }
-
 
   public List<Log> getLogsByHabit(Habit habit) {
     List<Log> logsByHabit = new ArrayList<>();
     String query = "SELECT * FROM logs WHERE habit_id = ?";
-    try (PreparedStatement statement = connection.prepareStatement(query)) {
+
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement statement = conn.prepareStatement(query)) {
+
       statement.setInt(1, habit.getId());
       ResultSet resultSet = statement.executeQuery();
+
       while (resultSet.next()) {
         Log log = new Log();
         log.setId(resultSet.getInt("id"));
@@ -247,15 +229,8 @@ public class LogService {
       }
     } catch (SQLException e) {
       System.out.println("Ошибка получения логов по привычке: " + e.getMessage());
-    } finally {
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (SQLException e) {
-          System.out.println("Ошибка закрытия соединения с базой данных: " + e.getMessage());
-        }
-      }
     }
+
     return logsByHabit;
   }
 }

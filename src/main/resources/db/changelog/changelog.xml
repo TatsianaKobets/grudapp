@@ -11,5 +11,7 @@
   <include file="004-create-table-habits.xml" relativeToChangelogFile="true"/>
   <include file="005-insert-data-habits.xml" relativeToChangelogFile="true"/>
   <include file="006-alter-sequence-habits.xml" relativeToChangelogFile="true"/>
-
+  <include file="007-create-table-logs.xml" relativeToChangelogFile="true"/>
+  <include file="008-insert-data-logs.xml" relativeToChangelogFile="true"/>
+  <include file="009-alter-sequence-logs.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>
