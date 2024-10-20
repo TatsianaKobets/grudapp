@@ -5,9 +5,9 @@
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd"
   logicalFilePath="db/changelog.xml">
-  <changeSet id="013-alter-sequence-notifications" author="tatsiana_kobets">
+  <changeSet id="004-alter-sequence-users" author="tatsiana_kobets">
     <sql>
-      ALTER SEQUENCE notifications_id_seq RESTART WITH 3;
+      ALTER SEQUENCE postgres_schema.users_id_seq RESTART WITH 3;
     </sql>
   </changeSet>
 </databaseChangeLog>

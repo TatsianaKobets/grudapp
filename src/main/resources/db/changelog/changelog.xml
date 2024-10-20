@@ -5,17 +5,18 @@
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd"
   logicalFilePath="db/changelog.xml">
-  <include file="001-create-table-users.xml" relativeToChangelogFile="true"/>
-  <include file="002-insert-data-users.xml" relativeToChangelogFile="true"/>
-  <include file="003-alter-sequence-users.xml" relativeToChangelogFile="true"/>
-  <include file="004-create-table-habits.xml" relativeToChangelogFile="true"/>
-  <include file="005-insert-data-habits.xml" relativeToChangelogFile="true"/>
-  <include file="006-alter-sequence-habits.xml" relativeToChangelogFile="true"/>
-  <include file="007-create-table-logs.xml" relativeToChangelogFile="true"/>
-  <include file="008-insert-data-logs.xml" relativeToChangelogFile="true"/>
-  <include file="009-alter-sequence-logs.xml" relativeToChangelogFile="true"/>
-  <include file="010-create-table-notifications.xml" relativeToChangelogFile="true"/>
-  <include file="011-add-foreign-keys-notifications.xml" relativeToChangelogFile="true"/>
-  <include file="012-insert-data-notifications.xml" relativeToChangelogFile="true"/>
-  <include file="013-alter-sequence-notifications.xml" relativeToChangelogFile="true"/>
+  <include file="001-create-sсhema-postgres.xml" relativeToChangelogFile="true"/>
+  <include file="002-create-table-users.xml" relativeToChangelogFile="true"/>
+  <include file="003-insert-data-users.xml" relativeToChangelogFile="true"/>
+  <include file="004-alter-sequence-users.xml" relativeToChangelogFile="true"/>
+  <include file="005-create-table-habits.xml" relativeToChangelogFile="true"/>
+  <include file="006-insert-data-habits.xml" relativeToChangelogFile="true"/>
+  <include file="007-alter-sequence-habits.xml" relativeToChangelogFile="true"/>
+  <include file="008-create-table-logs.xml" relativeToChangelogFile="true"/>
+  <include file="009-insert-data-logs.xml" relativeToChangelogFile="true"/>
+  <include file="010-alter-sequence-logs.xml" relativeToChangelogFile="true"/>
+  <include file="011-create-table-notifications.xml" relativeToChangelogFile="true"/>
+  <include file="012-add-foreign-keys-notifications.xml" relativeToChangelogFile="true"/>
+  <include file="013-insert-data-notifications.xml" relativeToChangelogFile="true"/>
+  <include file="014-alter-sequence-notifications.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

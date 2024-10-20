@@ -33,10 +33,12 @@ public class MainClass {
       String url = properties.getProperty("db.url");
       String username = properties.getProperty("db.username");
       String password = properties.getProperty("db.password");
+      String defaultSchema = properties.getProperty("db.defaultSchema");
 
       Connection connection = DriverManager.getConnection(url, username, password);
       Database database = DatabaseFactory.getInstance()
           .findCorrectDatabaseImplementation(new JdbcConnection(connection));
+      database.setDefaultSchemaName(defaultSchema);
       Liquibase liquibase = new Liquibase("db/changelog/changelog.xml",
           new ClassLoaderResourceAccessor(), database);
       liquibase.update();

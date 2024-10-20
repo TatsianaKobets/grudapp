@@ -5,15 +5,15 @@
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd"
   logicalFilePath="db/changelog.xml">
-  <changeSet id="002-insert-data-users" author="tatsiana_kobets">
-    <insert tableName="users">
+  <changeSet id="003-insert-data-users" author="tatsiana_kobets">
+    <insert schemaName="postgres_schema" tableName="users">
       <column name="id" valueNumeric="1"/>
       <column name="email" value="1@1"/>
       <column name="password" value="1111"/>
       <column name="name" value="1"/>
       <column name="role" value="ADMIN"/>
     </insert>
-    <insert tableName="users">
+    <insert schemaName="postgres_schema" tableName="users">
       <column name="id" valueNumeric="2"/>
       <column name="email" value="2@2"/>
       <column name="password" value="2222"/>
