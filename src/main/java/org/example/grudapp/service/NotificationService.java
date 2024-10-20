@@ -64,7 +64,7 @@ public class NotificationService {
    * @param habit            the habit associated with the notification
    */
   public void createNotification(Date notificationDate, boolean sent, User user, Habit habit) {
-    String query = "INSERT INTO notifications (notification_date, sent, user_id, habit_id) VALUES (?, ?, ?, ?)";
+    String query = "INSERT INTO postgres_schema.notifications (notification_date, sent, user_id, habit_id) VALUES (?, ?, ?, ?)";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
       statement.setDate(1, new java.sql.Date(notificationDate.getTime()));
@@ -78,7 +78,7 @@ public class NotificationService {
   }
 
   public int getNotificationCount() {
-    String query = "SELECT COUNT(*) FROM notifications";
+    String query = "SELECT COUNT(*) FROM postgres_schema.notifications";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
       ResultSet resultSet = statement.executeQuery();
@@ -93,7 +93,7 @@ public class NotificationService {
 
 
   public void addNotification(Notification notification) {
-    String query = "INSERT INTO notifications (notification_date, sent, user_id, habit_id) VALUES (?, ?, ?, ?)";
+    String query = "INSERT INTO postgres_schema.notifications (notification_date, sent, user_id, habit_id) VALUES (?, ?, ?, ?)";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
       statement.setDate(1, new java.sql.Date(notification.getNotificationDate().getTime()));
@@ -112,7 +112,7 @@ public class NotificationService {
    * @param notificationId the ID of the notification to send
    */
   public void sendNotification(int notificationId) {
-    String query = "SELECT * FROM notifications WHERE id = ?";
+    String query = "SELECT * FROM postgres_schema.notifications WHERE id = ?";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
       statement.setInt(1, notificationId);
@@ -132,7 +132,7 @@ public class NotificationService {
               "Уведомление", "Выполняйте свою привычку!");
 
           // Обновляем статус отправки
-          query = "UPDATE notifications SET sent = ? WHERE id = ?";
+          query = "UPDATE postgres_schema.notifications SET sent = ? WHERE id = ?";
           try (PreparedStatement updateStatement = conn.prepareStatement(query)) {
             updateStatement.setBoolean(1, true);
             updateStatement.setInt(2, notificationId);

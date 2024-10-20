@@ -29,12 +29,6 @@ public class AdminService {
     return habits;
   }
 
-  // Constructor
-  public AdminService(Set<User> admins, Set<User> users, Set<Habit> habits) {
-    this.admins = admins;
-    this.users = users;
-    this.habits = habits;
-  }
 
   public AdminService() {
   }
@@ -72,7 +66,7 @@ public class AdminService {
 
   // Save user to the database
   private void saveUser(User user) {
-    String query = "INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)";
+    String query = "INSERT INTO postgres_schema.users (email, password, name, role) VALUES (?, ?, ?, ?)";
     try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = connection.prepareStatement(query)) {
       statement.setString(1, user.getEmail());
@@ -87,7 +81,7 @@ public class AdminService {
 
   // Delete user from the database
   private void deleteUser(User user) {
-    String query = "DELETE FROM users WHERE id = ?";
+    String query = "DELETE FROM postgres_schema.users WHERE id = ?";
     try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = connection.prepareStatement(query)) {
       statement.setInt(1, user.getId());
@@ -113,7 +107,7 @@ public class AdminService {
 
   // Update user role in the database
   private void updateUserRole(User user) {
-    String query = "UPDATE users SET role = ? WHERE id = ?";
+    String query = "UPDATE postgres_schema.users SET role = ? WHERE id = ?";
     try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = connection.prepareStatement(query)) {
       statement.setString(1, user.getRole().toString());
@@ -138,7 +132,7 @@ public class AdminService {
 
   // Save habit to the database
   private void saveHabit(Habit habit) {
-    String query = "INSERT INTO habits (name, description) VALUES (?, ?)";
+    String query = "INSERT INTO postgres_schema.habits (name, description) VALUES (?, ?)";
     try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = connection.prepareStatement(query)) {
       statement.setString(1, habit.getName());
@@ -151,7 +145,7 @@ public class AdminService {
 
   // Delete habit from the database
   private void deleteHabit(int id) {
-    String query = "DELETE FROM habits WHERE id = ?";
+    String query = "DELETE FROM postgres_schema.habits WHERE id = ?";
     try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = connection.prepareStatement(query)) {
       statement.setInt(1, id);

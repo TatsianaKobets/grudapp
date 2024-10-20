@@ -49,7 +49,7 @@ public class UserService {
    */
   public Map<Integer, User> getUsers() {
     Map<Integer, User> users = new HashMap<>();
-    String sql = "SELECT * FROM users";
+    String sql = "SELECT * FROM postgres_schema.users";
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -81,7 +81,7 @@ public class UserService {
 
   // Метод поиска пользователя по email
   public User getUserByEmail(String email) {
-    String sql = "SELECT * FROM users WHERE email = ?";
+    String sql = "SELECT * FROM postgres_schema.users WHERE email = ?";
     User user = null;
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -115,7 +115,7 @@ public class UserService {
    * @param name     имя пользователя
    */
   public int registerUser(String email, String password, String name) {
-    String sql = "INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?) RETURNING id";
+    String sql = "INSERT INTO postgres_schema.users (email, password, name, role) VALUES (?, ?, ?, ?) RETURNING id";
     Role role = getUsers().isEmpty() ? Role.ADMIN : Role.USER;
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -144,7 +144,7 @@ public class UserService {
   }
 
   public User authenticateUser(String email, String password) {
-    String sql = "SELECT * FROM users WHERE email = ? AND password = ?";
+    String sql = "SELECT * FROM postgres_schema.users WHERE email = ? AND password = ?";
     User authenticatedUser = null;
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -175,7 +175,7 @@ public class UserService {
    * @return пользователь или null
    */
   public User getUserById(int id) {
-    String sql = "SELECT * FROM users WHERE id = ?";
+    String sql = "SELECT * FROM postgres_schema.users WHERE id = ?";
     User user = null;
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -204,7 +204,7 @@ public class UserService {
 
   // Обновление профиля пользователя
   public void editUserProfile(User user) {
-    String sql = "UPDATE users SET email = ?, password = ?, name = ? WHERE id = ?";
+    String sql = "UPDATE postgres_schema.users SET email = ?, password = ?, name = ? WHERE id = ?";
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -257,7 +257,7 @@ public class UserService {
    * @param email email пользователя
    */
   public void deleteUser(String email) {
-    String sql = "DELETE FROM users WHERE email = ?";
+    String sql = "DELETE FROM postgres_schema.users WHERE email = ?";
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement pstmt = conn.prepareStatement(sql)) {

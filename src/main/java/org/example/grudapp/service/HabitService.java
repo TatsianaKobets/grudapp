@@ -42,7 +42,7 @@ public class HabitService {
 
   // Method to create a new habit
   public void createHabit(String name, String description, String frequency, User user) {
-    String sql = "INSERT INTO habits (name, description, frequency, user_id, creation_date) VALUES (?, ?, ?, ?, ?) RETURNING id";
+    String sql = "INSERT INTO postgres_schema.habits (name, description, frequency, user_id, creation_date) VALUES (?, ?, ?, ?, ?) RETURNING id";
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -68,7 +68,7 @@ public class HabitService {
   // Get all habits for a user
   public List<Habit> getHabitsByUser(User user) {
     List<Habit> result = new ArrayList<>();
-    String sql = "SELECT * FROM habits WHERE user_id = ?";
+    String sql = "SELECT * FROM postgres_schema.habits WHERE user_id = ?";
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -96,7 +96,7 @@ public class HabitService {
 
   // Update an existing habit
   public void updateHabit(int habitId, String name, String description, String frequency) {
-    String sql = "UPDATE habits SET name = ?, description = ?, frequency = ?, creation_date = ? WHERE id = ?";
+    String sql = "UPDATE postgres_schema.habits SET name = ?, description = ?, frequency = ?, creation_date = ? WHERE id = ?";
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -120,7 +120,7 @@ public class HabitService {
    */
   // Delete an existing habit
   public void deleteHabit(int habitId) {
-    String sql = "DELETE FROM habits WHERE id = ?";
+    String sql = "DELETE FROM postgres_schema.habits WHERE id = ?";
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -164,7 +164,7 @@ public class HabitService {
       }
   }*/
   public void saveHabit(Habit habit) {
-    String sql = "INSERT INTO habits (name, description, frequency, user_id, creation_date) VALUES (?, ?, ?, ?, ?) RETURNING id";
+    String sql = "INSERT INTO postgres_schema.habits (name, description, frequency, user_id, creation_date) VALUES (?, ?, ?, ?, ?) RETURNING id";
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement pstmt = conn.prepareStatement(sql)) {

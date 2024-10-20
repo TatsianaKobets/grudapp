@@ -40,7 +40,7 @@ public class LogService {
    * @param user      the user who created the log
    */
   public void createLog(Date logDate, boolean completed, Habit habit, User user) {
-    String query = "INSERT INTO logs (log_date, completed, habit_id, user_id) VALUES (?, ?, ?, ?) RETURNING id";
+    String query = "INSERT INTO postgres_schema.logs (log_date, completed, habit_id, user_id) VALUES (?, ?, ?, ?) RETURNING id";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
 
@@ -70,7 +70,7 @@ public class LogService {
 
   public List<Log> getLogsByUser(User user) {
     List<Log> userLogs = new ArrayList<>();
-    String query = "SELECT * FROM logs WHERE user_id = ?";
+    String query = "SELECT * FROM postgres_schema.logs WHERE user_id = ?";
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
@@ -101,7 +101,7 @@ public class LogService {
    * @param completed the new completion status of the log
    */
   public void updateLog(int logId, Date logDate, boolean completed) {
-    String query = "UPDATE logs SET log_date = ?, completed = ? WHERE id = ?";
+    String query = "UPDATE postgres_schema.logs SET log_date = ?, completed = ? WHERE id = ?";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
       // Установка параметров
@@ -120,7 +120,7 @@ public class LogService {
    * @param logId the ID of the log to delete
    */
   public void deleteLog(int logId) {
-    String query = "DELETE FROM logs WHERE id = ?";
+    String query = "DELETE FROM postgres_schema.logs WHERE id = ?";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
       statement.setInt(1, logId);
@@ -137,7 +137,7 @@ public class LogService {
    * @return the longest streak of completed logs
    */
   public int getStreak(Habit habit) {
-    String query = "SELECT * FROM logs WHERE habit_id = ? ORDER BY log_date";
+    String query = "SELECT * FROM postgres_schema.logs WHERE habit_id = ? ORDER BY log_date";
     int maxStreak = 0;
     int streak = 0;
     Date previousLogDate = null;
@@ -185,7 +185,7 @@ public class LogService {
    * @return the success percentage as a decimal value
    */
   public double getSuccessPercentage(Habit habit, Date startDate, Date endDate) {
-    String query = "SELECT * FROM logs WHERE habit_id = ? AND log_date BETWEEN ? AND ?";
+    String query = "SELECT * FROM postgres_schema.logs WHERE habit_id = ? AND log_date BETWEEN ? AND ?";
     int totalLogs = 0;
     int successfulLogs = 0;
 
@@ -217,7 +217,7 @@ public class LogService {
   }
 
   public void addLog(Log log) {
-    String query = "INSERT INTO logs (log_date, completed, habit_id, user_id) VALUES (?, ?, ?, ?) RETURNING id";
+    String query = "INSERT INTO postgres_schema.logs (log_date, completed, habit_id, user_id) VALUES (?, ?, ?, ?) RETURNING id";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
 
@@ -242,7 +242,7 @@ public class LogService {
 
   public List<Log> getLogsByHabit(Habit habit) {
     List<Log> logsByHabit = new ArrayList<>();
-    String query = "SELECT * FROM logs WHERE habit_id = ?";
+    String query = "SELECT * FROM postgres_schema.logs WHERE habit_id = ?";
 
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {

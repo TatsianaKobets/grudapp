@@ -6,6 +6,9 @@ import java.util.List;
 
 /**
  * Represents a habit in the system.
+ * <p>
+ * A habit is an activity that a user wants to perform regularly, such as exercising or reading.
+ * This class encapsulates the properties and behavior of a habit.
  */
 public class Habit {
 
@@ -58,18 +61,15 @@ public class Habit {
     this.user = user;
     this.creationDate = new Date();
   }
-  public Habit(int id, String name, String description, Date creationDate) {
-    this.id = id;
-    this.name = name;
-    this.description = description;
-    this.logs = new ArrayList<>();
-    this.creationDate = new Date();
-  }
-
-  public Habit() {
-  }
-
+  /**
+   * Constructs a Habit object with the given ID.
+   *
+   * This constructor is used when the habit is retrieved from a database or other data source.
+   *
+   * @param habitId the unique ID for the habit
+   */
   public Habit(int habitId) {
+    this.id = habitId;
   }
 
   public void setId(int id) {
@@ -106,6 +106,7 @@ public class Habit {
   public String getDescription() {
     return description;
   }
+
   /**
    * Returns the frequency of the habit.
    *
@@ -114,6 +115,7 @@ public class Habit {
   public String getFrequency() {
     return frequency;
   }
+
   public void setDescription(String description) {
     this.description = description;
   }
