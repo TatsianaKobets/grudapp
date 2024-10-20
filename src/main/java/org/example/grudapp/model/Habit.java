@@ -66,6 +66,16 @@ public class Habit {
     this.creationDate = new Date();
   }
 
+  public Habit() {
+  }
+
+  public Habit(int habitId) {
+  }
+
+  public void setId(int id) {
+    this.id = id;
+  }
+
   /**
    * Returns the unique ID for the habit.
    *

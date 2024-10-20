@@ -11,7 +11,7 @@ public class User {
   /**
    * Unique identifier for the user.
    */
-  private final int id;
+  private int id;
   /**
    * Email address of the user.
    */
@@ -45,6 +45,8 @@ public class User {
     this.id = id;
   }
 
+  public User() {
+  }
   /**
    * Constructs a User object with the given parameters.
    *
@@ -90,6 +92,9 @@ public class User {
     return id;
   }
 
+  public void setId(int id) {
+    this.id = id;
+  }
   /**
    * Returns the email address of the user.
    *

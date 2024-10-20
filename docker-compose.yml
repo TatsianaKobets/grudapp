@@ -1,26 +1,18 @@
-version: "3.9"
+version: '3.8'
 
 services:
   postgres:
-    image: postgres:13.3
-    environment:
-      POSTGRES_DB: "mydb"
-      POSTGRES_USER: "user"
-      POSTGRES_PASSWORD: "password"
+    image: postgres:latest
+    container_name: mypostgres
     ports:
       - "5432:5432"
-    volumes:
-      - ./data/postgres:/var/lib/postgresql/data
-
-  myapp:
-    build: .
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
     environment:
-      - DATABASE_URL=postgres://user:password@postgres:5432/mydb
-      - dataSourceClassName=org.postgresql.ds.PGSimpleDataSource
-      - dataSource.user=user
-      - dataSource.password=password
-      - dataSource.databaseName=mydb
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_SCHEMA: postgres_schema
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
