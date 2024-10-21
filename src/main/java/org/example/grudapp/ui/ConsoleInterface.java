@@ -132,7 +132,7 @@ public class ConsoleInterface {
 
   private void adminPanel(Scanner scanner) {
     System.out.println(
-        "Вы авторизованы как администратор" + userService.getAuthenticatedUser(scanner.nextLine())
+        "Вы авторизованы как администратор" + userService.getUserByEmail(scanner.nextLine())
             .getName()
             + "\n Выберите действие:");
     System.out.println("1. Назначить роль администратора для пользователя");
@@ -489,7 +489,7 @@ public class ConsoleInterface {
   }
 
   private void viewStatistics(Scanner scanner) {
-    User user = userService.getAuthenticatedUser(scanner.nextLine());
+    User user = userService.getUserByEmail(scanner.nextLine());
     if (user == null) {
       System.out.println("Пожалуйста, авторизуйтесь перед просмотром статистики.");
       return;
@@ -517,7 +517,7 @@ public class ConsoleInterface {
   }
 
   private void viewStreak(Scanner scanner) {
-    User user = userService.getAuthenticatedUser(scanner.nextLine());
+    User user = userService.getUserByEmail(scanner.nextLine());
     List<Habit> habits = habitService.getHabitsByUser(user);
     for (Habit habit : habits) {
       int streak = logService.getStreak(habit);
@@ -526,7 +526,7 @@ public class ConsoleInterface {
   }
 
   private void viewSuccessPercentage(Scanner scanner) {
-    User user = userService.getAuthenticatedUser(scanner.nextLine());
+    User user = userService.getUserByEmail(scanner.nextLine());
     System.out.println("Введите начало периода (yyyy-MM-dd):");
     String startDateString = scanner.next();
     System.out.println("Введите конец периода (yyyy-MM-dd):");
@@ -553,7 +553,7 @@ public class ConsoleInterface {
   }
 
   private void viewProgressReport(Scanner scanner) {
-    User user = userService.getAuthenticatedUser(scanner.nextLine());
+    User user = userService.getUserByEmail(scanner.nextLine());
     List<Habit> habits = habitService.getHabitsByUser(user);
     for (Habit habit : habits) {
       List<Log> logs = logService.getLogsByHabit(habit);

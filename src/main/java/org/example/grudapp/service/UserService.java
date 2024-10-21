@@ -29,9 +29,8 @@ public class UserService {
   private static final String PASSWORD = "password";
 
   /**
-   * Returns a database connection. If a connection has been previously injected,
-   * it is returned. Otherwise, a new connection is created using the provided URL,
-   * username, and password.
+   * Returns a database connection. If a connection has been previously injected, it is returned.
+   * Otherwise, a new connection is created using the provided URL, username, and password.
    *
    * @return a database connection
    * @throws SQLException if a database access error occurs
@@ -45,10 +44,14 @@ public class UserService {
     }
   }
 
+  public void setConnection(Connection connection) {
+    this.connection = connection;
+  }
+
   /**
-   * Получить всех пользователей.
+   * Retrieves a map of all users from the database.
    *
-   * @return Мапа пользователей, где ключ - ID пользователя, значение - объект пользователя
+   * @return A map where the keys are user IDs and the values are corresponding User objects.
    */
   public Map<Integer, User> getUsers() {
     Map<Integer, User> users = new HashMap<>();
@@ -65,24 +68,24 @@ public class UserService {
             rs.getString("password"),
             rs.getString("name")
         );
-        user.setRole(Role.valueOf(rs.getString("role"))); // Преобразование значения роли
+        user.setRole(Role.valueOf(rs.getString("role")));
         users.put(user.getId(), user);
       }
     } catch (SQLException e) {
       System.out.println("Ошибка при получении пользователей: " + e.getMessage());
     }
-
     return users;
   }
 
-
-  // Метод для возвращения текущего аутентифицированного пользователя
-  public User getAuthenticatedUser(String email) {
-    return getUserByEmail(
-        email); // Если у вас есть метод getUserByEmail, можно использовать его здесь
-  }
-
-  // Метод поиска пользователя по email
+  /**
+   * Returns the authorized user by his email.
+   * <p>
+   * This method runs an SQL query to look up a user in a database based on their email. If the user
+   * is found and authorized, it is returned as a User object.
+   *
+   * @param email user's email
+   * @return the authorized user, or null if the user is not found or not authorized
+   */
   public User getUserByEmail(String email) {
     String sql = "SELECT * FROM postgres_schema.users WHERE email = ?";
     User user = null;
@@ -102,24 +105,23 @@ public class UserService {
         );
         user.setRole(Role.valueOf(rs.getString("role")));
       }
-
     } catch (SQLException e) {
       System.out.println("Ошибка при получении пользователя по email: " + e.getMessage());
     }
-
     return user;
   }
 
   /**
-   * Регистрация нового пользователя.
+   * New user registration.
    *
-   * @param email    email пользователя
-   * @param password пароль пользователя
-   * @param name     имя пользователя
+   * @param email    user's email
+   * @param password user password
+   * @param name     username
    */
   public User registerUser(String email, String password, String name) {
     if (getUserByEmail(email) != null) {
-      System.out.println("Пользователь с таким email уже существует");
+      System.out.println(
+          "Пользователь с таким email уже существует. Пожалуйста, введите другой email.");
       return null;
     }
 
@@ -153,10 +155,26 @@ public class UserService {
     return null;
   }
 
+  /**
+   * Returns the currently authenticated user.
+   *
+   * @return the authenticated user, or null if the user is not authenticated
+   */
   public User getAuthenticatedUser() {
-    return authenticatedUser; // Возврат аутентифицированного пользователя
+    return authenticatedUser;
   }
 
+  /**
+   * Authenticates the user by email and password.
+   * <p>
+   * This method runs an SQL query to look up a user in a database based on their email and
+   * password. If the user is found and the password matches, it is returned as an authenticated
+   * user.
+   *
+   * @param email    user's email
+   * @param password user password
+   * @return the authenticated user, or null if the user is not found or the password is incorrect
+   */
   public User authenticateUser(String email, String password) {
     String sql = "SELECT * FROM postgres_schema.users WHERE email = ? AND password = ?";
     User authenticatedUser = null;
@@ -183,10 +201,13 @@ public class UserService {
   }
 
   /**
-   * Получить пользователя по ID.
+   * Returns the user by ID.
+   * <p>
+   * This method runs an SQL query to look up a user in the database based on their user ID. If the
+   * user is found, it is returned as a User object.
    *
-   * @param id ID пользователя
-   * @return пользователь или null
+   * @param id user identifier
+   * @return the user, or null if the user is not found
    */
   public User getUserById(int id) {
     String sql = "SELECT * FROM postgres_schema.users WHERE id = ?";
@@ -215,8 +236,14 @@ public class UserService {
     return user;
   }
 
-
-  // Обновление профиля пользователя
+  /**
+   * Updates the user's profile in the database.
+   * <p>
+   * This method accepts a User object containing the updated user data, and updates the
+   * corresponding entry in the users table of the database.
+   *
+   * @param user a User object containing the updated user data
+   */
   public void editUserProfile(User user) {
     String sql = "UPDATE postgres_schema.users SET email = ?, password = ?, name = ? WHERE id = ?";
 
@@ -236,9 +263,12 @@ public class UserService {
   }
 
   /**
-   * Resets a user's password.
+   * Resets the user's password via his email.
+   * <p>
+   * This method generates a new password, finds the user by his email, and updates user password if
+   * the user is found.
    *
-   * @param email the email address of the user
+   * @param email email of the user for whom you want to reset the password
    */
   public void resetPassword(String email) {
     String newPassword = generatePassword();
@@ -252,9 +282,9 @@ public class UserService {
   }
 
   /**
-   * Generates a random password.
+   * Generates a random password of 8 characters.
    *
-   * @return the generated password
+   * @return A string representing the random password.
    */
   public String generatePassword() {
     String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -266,9 +296,9 @@ public class UserService {
   }
 
   /**
-   * Удалить пользователя по email.
+   * Removes a user from the database by his email.
    *
-   * @param email email пользователя
+   * @param email email of the user to be deleted
    */
   public void deleteUser(String email) {
     String sql = "DELETE FROM postgres_schema.users WHERE email = ?";
@@ -288,9 +318,5 @@ public class UserService {
     } catch (SQLException e) {
       System.out.println("Ошибка при удалении пользователя: " + e.getMessage());
     }
-  }
-
-  public void setConnection(Connection connection) {
-    this.connection = connection;
   }
 }
