@@ -28,12 +28,15 @@ public class UserService {
   private static final String USERNAME = "postgres";
   private static final String PASSWORD = "password";
 
-  // Setter method for injecting connection
-  public void setConnection(Connection connection) {
-    this.connection = connection;
-  }
-
-  private Connection getConnection() throws SQLException {
+  /**
+   * Returns a database connection. If a connection has been previously injected,
+   * it is returned. Otherwise, a new connection is created using the provided URL,
+   * username, and password.
+   *
+   * @return a database connection
+   * @throws SQLException if a database access error occurs
+   */
+  public Connection getConnection() throws SQLException {
     // Return the injected connection if available; otherwise, create a new one
     if (connection != null) {
       return connection;
@@ -114,11 +117,16 @@ public class UserService {
    * @param password пароль пользователя
    * @param name     имя пользователя
    */
-  public int registerUser(String email, String password, String name) {
+  public User registerUser(String email, String password, String name) {
+    if (getUserByEmail(email) != null) {
+      System.out.println("Пользователь с таким email уже существует");
+      return null;
+    }
+
     String sql = "INSERT INTO postgres_schema.users (email, password, name, role) VALUES (?, ?, ?, ?) RETURNING id";
     Role role = getUsers().isEmpty() ? Role.ADMIN : Role.USER;
 
-    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+    try (Connection conn = getConnection();
         PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
       pstmt.setString(1, email);
@@ -129,14 +137,20 @@ public class UserService {
       pstmt.executeUpdate();
       ResultSet rs = pstmt.getGeneratedKeys();
       if (rs.next()) {
-        return rs.getInt(1);
+        User user = new User(
+            rs.getInt(1),
+            email,
+            password,
+            name
+        );
+        user.setRole(role);
+        return user;
       }
 
     } catch (SQLException e) {
       System.out.println("Ошибка при регистрации пользователя: " + e.getMessage());
     }
-
-    return -1; // Если произошла ошибка
+    return null;
   }
 
   public User getAuthenticatedUser() {
@@ -274,5 +288,9 @@ public class UserService {
     } catch (SQLException e) {
       System.out.println("Ошибка при удалении пользователя: " + e.getMessage());
     }
+  }
+
+  public void setConnection(Connection connection) {
+    this.connection = connection;
   }
 }

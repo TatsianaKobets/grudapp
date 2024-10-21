@@ -23,20 +23,17 @@
         <constraints nullable="false"/>
       </column>
     </createTable>
-
     <addForeignKeyConstraint
       baseTableName="logs"
       baseColumnNames="habit_id"
       constraintName="fk_logs_habit_id"
       referencedTableName="habits"
       referencedColumnNames="id"/>
-
     <addForeignKeyConstraint
       baseTableName="logs"
       baseColumnNames="user_id"
       constraintName="fk_logs_user_id"
       referencedTableName="users"
       referencedColumnNames="id"/>
-
   </changeSet>
 </databaseChangeLog>

@@ -12,7 +12,6 @@
       referencedTableName="users"
       referencedColumnNames="id"
       constraintName="fk_notifications_users"/>
-
     <addForeignKeyConstraint
       baseTableName="notifications"
       baseColumnNames="habit_id"
@@ -20,5 +19,4 @@
       referencedColumnNames="id"
       constraintName="fk_notifications_habits"/>
   </changeSet>
-
 </databaseChangeLog>
