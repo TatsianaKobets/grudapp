@@ -82,6 +82,21 @@ public class User {
     this.habits = new ArrayList<>();
     this.logs = new ArrayList<>();
   }
+  /**
+   * Constructs a User object with the given parameters.
+   *
+   * @param email    the email address of the user
+   * @param password the password of the user
+   * @param name     the name of the user
+   */
+  public User(String email, String password, String name) {
+    this.email = email;
+    this.password = password;
+    this.name = name;
+    this.habits = new ArrayList<>();
+    this.logs = new ArrayList<>();
+  }
+
 
   /**
    * Returns the unique ID for the user.

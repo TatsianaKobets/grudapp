@@ -1,5 +1,6 @@
 package org.example.grudapp.service;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -10,7 +11,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Set;
 import org.example.grudapp.PostgresContainerTest;
+import org.example.grudapp.model.Role;
 import org.example.grudapp.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -321,6 +324,73 @@ class UserServiceTest extends PostgresContainerTest {
     userService.deleteUser(email);
 
     assertTrue(true, "Метод должен корректно обработать null.");
+  }
+
+  @Test
+  void testAssignAdminRole_success() {
+    String email = "testAssignAdminRole@example.com";
+    String password = "testpassword";
+    String username = "testuser";
+    userService.registerUser(email, password, username);
+
+    User user = userService.getUserByEmail(email);
+    userService.assignAdminRole(user);
+
+    Set<User> admins = userService.getAdmins();
+    assertTrue(admins.contains(user), "Пользователь должен быть администратором.");
+  }
+
+  @Test
+  void testAssignUserRole() {
+    String email = "testAssignAdminRole@example.com";
+
+    User user = userService.getUserByEmail(email);
+    userService.assignUserRole(user);
+    Set<User> admins = userService.getAdmins();
+    assertFalse("Пользователь не должен быть администратором.", admins.contains(user));
+  }
+
+  @Test
+  void testUpdateUserRole_success() {
+    String email = "testUpdateUserRole@example.com";
+    String password = "testpassword";
+    String username = "testuser";
+    userService.registerUser(email, password, username);
+
+    User user = userService.getUserByEmail(email);
+    user.setRole(Role.ADMIN);
+
+    userService.updateUserRole(user);
+
+    User updatedUser = userService.getUserByEmail(email);
+    assertNotNull(updatedUser, "Пользователь должен быть найден.");
+    assertEquals(Role.ADMIN, updatedUser.getRole(), "Роль пользователя должна быть обновлена.");
+  }
+
+  @Test
+  void testUpdateUserRole_notFound() {
+    User user = new User();
+    user.setId(99999);
+    user.setEmail("notfoundUpdateUserRole@example.com");
+    user.setRole(Role.ADMIN);
+
+    userService.updateUserRole(user);
+
+    User updatedUser = userService.getUserByEmail("notfoundUpdateUserRole@example.com");
+    assertNull(updatedUser, "Пользователь должен быть null.");
+  }
+
+  @Test
+  void testUpdateUserRole_invalidId() {
+    User user = new User();
+    user.setId(-1);
+    user.setEmail("invalidIdUpdateUserRole@example.com");
+    user.setRole(Role.ADMIN);
+
+    userService.updateUserRole(user);
+
+    User updatedUser = userService.getUserByEmail("invalidIdUpdateUserRole@example.com");
+    assertNull(updatedUser, "Пользователь должен быть null.");
   }
 }
 

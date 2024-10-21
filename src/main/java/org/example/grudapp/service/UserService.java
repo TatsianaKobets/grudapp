@@ -7,7 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.example.grudapp.model.Role;
 import org.example.grudapp.model.User;
 
@@ -16,12 +18,12 @@ import org.example.grudapp.model.User;
  */
 public class UserService {
 
-  private Map<Integer, User> users = new HashMap<>();
   /**
    * The currently authenticated user.
    */
   private User authenticatedUser;
   private Connection connection;
+  private Set<User> admins = new HashSet<>();
 
 
   private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
@@ -47,6 +49,11 @@ public class UserService {
   public void setConnection(Connection connection) {
     this.connection = connection;
   }
+
+  public Set<User> getAdmins() {
+    return admins;
+  }
+
 
   /**
    * Retrieves a map of all users from the database.
@@ -317,6 +324,46 @@ public class UserService {
 
     } catch (SQLException e) {
       System.out.println("Ошибка при удалении пользователя: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Assigns the ADMIN role to a user and adds them to the collection of admins.
+   *
+   * @param user The user object to assign the ADMIN role to.
+   */
+  public void assignAdminRole(User user) {
+    user.setRole(Role.ADMIN);
+    admins.add(user);
+    updateUserRole(user);
+  }
+
+  /**
+   * Assigns the USER role to a user and removes them from the collection of admins.
+   *
+   * @param user The user object to assign the USER role to.
+   */
+  public void assignUserRole(User user) {
+    user.setRole(Role.USER);
+    admins.remove(user);
+    updateUserRole(user);
+  }
+
+  /**
+   * Updates the role of a user in the database.
+   *
+   * @param user The user object to update the role for.
+   */
+  public void updateUserRole(User user) {
+    String sql = "UPDATE postgres_schema.users SET role = ? WHERE id = ?";
+    try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, user.getRole().toString());
+      pstmt.setInt(2, user.getId());
+      pstmt.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("Error updating user role: " + e.getMessage());
     }
   }
 }

@@ -11,7 +11,6 @@ import java.util.Set;
 import org.example.grudapp.model.Habit;
 import org.example.grudapp.model.Log;
 import org.example.grudapp.model.User;
-import org.example.grudapp.service.AdminService;
 import org.example.grudapp.service.HabitService;
 import org.example.grudapp.service.LogService;
 import org.example.grudapp.service.UserService;
@@ -208,9 +207,9 @@ public class ConsoleInterface {
   }
 
   private void viewAllUsers(Scanner scanner) {
-    Set<User> users = adminService.getUsers();
+    Map<Integer, User> users = userService.getUsers();
     System.out.println("Все пользователи:");
-    for (User user : users) {
+    for (User user : users.values()) {
       System.out.println(
           "ID: " + user.getId() + ", Email: " + user.getEmail() + ", Name: " + user.getName()
               + ", Role: " + user.getRole());
@@ -218,8 +217,8 @@ public class ConsoleInterface {
   }
 
   private void viewAllHabits(Scanner scanner) {
-    Set<Habit> habits = adminService.getHabits();
-    for (Habit habit : habits) {
+    Map<Integer,Habit> habits = habitService.getHabits();
+    for (Habit habit : habits.values()) {
       System.out.println("ID: " + habit.getId() + ", Название: " + habit.getName() + ", Описание: "
           + habit.getDescription());
     }
