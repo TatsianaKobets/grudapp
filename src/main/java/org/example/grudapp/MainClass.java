@@ -18,7 +18,8 @@ import org.example.grudapp.ui.ConsoleInterface;
 
 public class MainClass {
 
-  private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
+  //private static final String URL = "jdbc:postgresql://localhost:5432/postgres";//currentSchema=foo
+  private static final String URL = "jdbc:postgresql://localhost:5432/postgres?currentSchema=postgres_schema";
   private static final String USERNAME = "postgres";
   private static final String PASSWORD = "password";
 
