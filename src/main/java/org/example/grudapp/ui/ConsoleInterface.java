@@ -26,23 +26,18 @@ public class ConsoleInterface {
   private HabitService habitService;
   private LogService logService;
 
-  private AdminService adminService;
-
   /**
    * Constructor for ConsoleInterface.
    *
    * @param userService  UserService instance
    * @param habitService HabitService instance
    * @param logService   LogService instance
-   * @param adminService AdminService instance
    */
 
-  public ConsoleInterface(UserService userService, HabitService habitService, LogService logService,
-      AdminService adminService) {
+  public ConsoleInterface(UserService userService, HabitService habitService, LogService logService) {
     this.userService = userService;
     this.habitService = habitService;
     this.logService = logService;
-    this.adminService = adminService;
   }
 
   /**
@@ -178,7 +173,7 @@ public class ConsoleInterface {
     int userId = scanner.nextInt();
     User user = userService.getUserById(userId);
     if (user != null) {
-      adminService.assignAdminRole(user);
+      userService.assignAdminRole(user);
       System.out.println("Роль ADMIN назначена пользователю");
     } else {
       System.out.println("Пользователь не найден");
@@ -190,7 +185,7 @@ public class ConsoleInterface {
     int userId = scanner.nextInt();
     User user = userService.getUserById(userId);
     if (user != null) {
-      adminService.assignUserRole(user);
+      userService.assignUserRole(user);
       System.out.println("Роль USER назначена пользователю");
     } else {
       System.out.println("Пользователь не найден");
@@ -198,7 +193,7 @@ public class ConsoleInterface {
   }
 
   private void viewAllAdmins(Scanner scanner) {
-    Set<User> admins = adminService.getAdmins();
+    Set<User> admins = userService.getAdmins();
     System.out.println("Все администраторы:");
     for (User admin : admins) {
       System.out.println(
@@ -217,7 +212,7 @@ public class ConsoleInterface {
   }
 
   private void viewAllHabits(Scanner scanner) {
-    Map<Integer,Habit> habits = habitService.getHabits();
+    Map<Integer, Habit> habits = habitService.getHabits();
     for (Habit habit : habits.values()) {
       System.out.println("ID: " + habit.getId() + ", Название: " + habit.getName() + ", Описание: "
           + habit.getDescription());
@@ -461,7 +456,8 @@ public class ConsoleInterface {
       return;
     }
 
-    List<Log> logs = logService.getLogsByUser(currentUser); // Получаем логи для текущего пользователя
+    List<Log> logs = logService.getLogsByUser(
+        currentUser); // Получаем логи для текущего пользователя
     if (logs.isEmpty()) {
       System.out.println("У вас нет отметок.");
       return;

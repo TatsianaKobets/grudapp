@@ -17,8 +17,9 @@ import org.example.grudapp.ui.ConsoleInterface;
 
 public class MainClass {
 
-  //private static final String URL = "jdbc:postgresql://localhost:5432/postgres";//currentSchema=foo
-  private static final String URL = "jdbc:postgresql://localhost:5432/postgres?currentSchema=postgres_schema";
+  private static final String URL = "jdbc:postgresql://postgres:5432/postgres?currentSchema=postgres_schema";
+
+  //private static final String URL = "jdbc:postgresql://localhost:5432/postgres?currentSchema=postgres_schema";
   private static final String USERNAME = "postgres";
   private static final String PASSWORD = "password";
 
@@ -34,14 +35,14 @@ public class MainClass {
       liquibase.update("postgres_schema");
       System.out.println("Migration is completed successfully");
     } catch (SQLException | LiquibaseException e) {
-      System.out.println("SQL xeption in migration: " + e.getMessage());
+      System.out.println("Ошибка или исключение SQL при миграции: " + e.getMessage());
     }
+
     UserService userService = new UserService();
     HabitService habitService = new HabitService();
     LogService logService = new LogService();
-    AdminService adminService = new AdminService();
     ConsoleInterface consoleInterface = new ConsoleInterface(userService, habitService,
-        logService, adminService);
+        logService);
     consoleInterface.run();
   }
 }

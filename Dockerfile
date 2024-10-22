@@ -1,20 +1,14 @@
-# Используем базовый образ с JDK
-#FROM openjdk:17-jdk-slim
+FROM maven:3.8.4-openjdk-17-slim AS build
 
-# Установка Maven
-#RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
-# Устанавливаем рабочую директорию
-#WORKDIR /app
+WORKDIR /app
 
-# Копируем файл pom.xml и загружаем зависимости
-#COPY pom.xml .
-#RUN mvn dependency:go-offline
+COPY pom.xml .
+COPY src ./src
 
-# Копируем исходный код проекта
-#COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Строим проект
-#RUN mvn package
+FROM openjdk:17-jdk-slim
 
-# Указываем команду для запуска приложения
-#ENTRYPOINT ["java", "-jar", "target/grudapp-1.0-SNAPSHOT.jar"]
+COPY --from=build /app/target/grudapp-1.0-SNAPSHOT.jar /app/grudapp.jar
+
+ENTRYPOINT ["java", "-jar", "/app/grudapp.jar"]
