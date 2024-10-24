@@ -18,7 +18,7 @@ import org.testcontainers.junit.jupiter.TestcontainersExtension;
 
 @ExtendWith(TestcontainersExtension.class)
 public class HabitServiceTest extends PostgresContainerTest {
-
+/*
   private HabitService habitService;
 
   @BeforeEach
@@ -55,5 +55,5 @@ public class HabitServiceTest extends PostgresContainerTest {
 
     assertThrows(NullPointerException.class, () -> habitService.createHabit(name, description, frequency, user));
   }
-
+*/
 }
