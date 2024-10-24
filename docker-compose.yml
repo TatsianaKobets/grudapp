@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:latest
-    container_name: mypostgres
+    container_name: postgres
     ports:
       - "5432:5432"
     environment:
@@ -18,23 +18,7 @@ services:
       timeout: 5s
       retries: 5
 
-  liquibase:
-    image: liquibase/liquibase:latest
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      LIQUIBASE_URL: jdbc:postgresql://postgres:5432/postgres?currentSchema=postgres_schema
-      LIQUIBASE_USER: postgres
-      LIQUIBASE_PASSWORD: password
-    volumes:
-      - ./src/main/resources/db/changelog:/liquibase/changelog
-    command: ["update"]
 
-  app:
-    build: .
-    depends_on:
-      - liquibase
 
 volumes:
   pg_data:

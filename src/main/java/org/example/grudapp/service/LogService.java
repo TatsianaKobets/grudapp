@@ -19,55 +19,55 @@ import org.example.grudapp.model.User;
  */
 public class LogService {
 
-  private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
+  private static final String URL = "jdbc:postgresql://postgres:5432/postgres?currentSchema=postgres_schema";
   private static final String USERNAME = "postgres";
   private static final String PASSWORD = "password";
-  /**
-   * Map of all logs. The key is the ID of the log, and the value is the log.
-   */
+
   private Map<Integer, Log> logs = new HashMap<>();
 
-  public Map<Integer, Log> getLogs() {
-    return logs;
-  }
 
   /**
-   * Creates a new log.
+   * Creates a new log entry in the database.
    *
-   * @param logDate   the date of the log
-   * @param completed indicates whether the log is completed
-   * @param habit     the habit associated with the log
-   * @param user      the user who created the log
+   * @param logDate   the date of the log entry
+   * @param completed whether the habit was completed on this date
+   * @param habit     the habit associated with this log entry
+   * @param user      the user who owns this log entry
+   * @throws SQLException if an error occurs while executing the database query
    */
   public void createLog(Date logDate, boolean completed, Habit habit, User user) {
     String query = "INSERT INTO postgres_schema.logs (log_date, completed, habit_id, user_id) VALUES (?, ?, ?, ?) RETURNING id";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
 
-      // Установка параметров
       statement.setDate(1, new java.sql.Date(logDate.getTime()));
       statement.setBoolean(2, completed);
       statement.setInt(3, habit.getId());
       statement.setInt(4, user.getId());
 
-      // Выполнение запроса
       ResultSet rs = statement.executeQuery();
       if (rs.next()) {
         int generatedId = rs.getInt(1);
-        // Создаем новый объект Log и добавляем его в локальную коллекцию
         Log newLog = new Log();
         newLog.setId(generatedId);
         newLog.setLogDate(logDate);
         newLog.setCompleted(completed);
         newLog.setHabit(habit);
         newLog.setUser(user);
-        logs.put(generatedId, newLog); // Добавляем лог в локальную коллекцию
+        logs.put(generatedId, newLog);
       }
     } catch (SQLException e) {
       System.out.println("Ошибка создания логов: " + e.getMessage());
     }
   }
 
+  /**
+   * Retrieves a list of log entries for a given user.
+   *
+   * @param user the user whose log entries are to be retrieved
+   * @return a list of log entries for the specified user
+   * @throws SQLException if an error occurs while executing the database query
+   */
   public List<Log> getLogsByUser(User user) {
     List<Log> userLogs = new ArrayList<>();
     String query = "SELECT * FROM postgres_schema.logs WHERE user_id = ?";
@@ -83,7 +83,8 @@ public class LogService {
         log.setId(resultSet.getInt("id"));
         log.setLogDate(resultSet.getDate("log_date"));
         log.setCompleted(resultSet.getBoolean("completed"));
-        log.setHabit(new Habit(resultSet.getInt("habit_id"))); // Предполагаю, что вы имеете этот конструктор
+        log.setHabit(
+            new Habit(resultSet.getInt("habit_id"))); // Предполагаю, что вы имеете этот конструктор
         log.setUser(user);
         userLogs.add(log);
       }
@@ -93,18 +94,20 @@ public class LogService {
 
     return userLogs;
   }
+
   /**
-   * Updates an existing log.
+   * Updates a log entry with the specified ID.
    *
-   * @param logId     the ID of the log to update
-   * @param logDate   the new date of the log
-   * @param completed the new completion status of the log
+   * @param logId     the ID of the log entry to update
+   * @param logDate   the new log date
+   * @param completed the new completion status
+   * @throws SQLException if an error occurs while executing the database query
    */
   public void updateLog(int logId, Date logDate, boolean completed) {
     String query = "UPDATE postgres_schema.logs SET log_date = ?, completed = ? WHERE id = ?";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
-      // Установка параметров
+
       statement.setDate(1, new java.sql.Date(logDate.getTime()));
       statement.setBoolean(2, completed);
       statement.setInt(3, logId);
@@ -115,9 +118,10 @@ public class LogService {
   }
 
   /**
-   * Deletes an existing log.
+   * Deletes a log entry with the specified ID.
    *
-   * @param logId the ID of the log to delete
+   * @param logId the ID of the log entry to delete
+   * @throws SQLException if an error occurs while executing the database query
    */
   public void deleteLog(int logId) {
     String query = "DELETE FROM postgres_schema.logs WHERE id = ?";
@@ -131,10 +135,11 @@ public class LogService {
   }
 
   /**
-   * Calculates the longest streak of completed logs for a given habit.
+   * Returns the maximum streak of consecutive days for which the specified habit was completed.
    *
-   * @param habit the habit to calculate the streak for
-   * @return the longest streak of completed logs
+   * @param habit the habit for which to calculate the streak
+   * @return the maximum streak of consecutive days for which the habit was completed
+   * @throws SQLException if an error occurs while executing the database query
    */
   public int getStreak(Habit habit) {
     String query = "SELECT * FROM postgres_schema.logs WHERE habit_id = ? ORDER BY log_date";
@@ -142,7 +147,6 @@ public class LogService {
     int streak = 0;
     Date previousLogDate = null;
 
-    // Используем try-with-resources для автоматического управления соединением
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
 
@@ -160,29 +164,32 @@ public class LogService {
             if (diffInDays == 1) {
               streak++;
             } else {
-              streak = 1; // Сбрасываем счетчик при разрыве последовательности
+              streak = 1;
             }
           } else {
-            streak = 1; // Первый выполненный лог
+            streak = 1;
           }
           maxStreak = Math.max(maxStreak, streak);
         }
-        previousLogDate = logDate; // Обновляем предыдущую дату лога
+        previousLogDate = logDate;
       }
     } catch (SQLException e) {
       System.out.println("Ошибка получения стика: " + e.getMessage());
     }
 
-    return maxStreak; // Возвращаем максимальный стрик
+    return maxStreak;
   }
 
   /**
-   * Calculates the success percentage of a habit within a given date range.
+   * Returns the percentage of successful log entries for the specified habit within the given date
+   * range.
    *
-   * @param habit     the habit to calculate the success percentage for
-   * @param startDate the start date of the range
-   * @param endDate   the end date of the range
-   * @return the success percentage as a decimal value
+   * @param habit     the habit for which to calculate the success percentage
+   * @param startDate the start date of the date range (inclusive)
+   * @param endDate   the end date of the date range (inclusive)
+   * @return the percentage of successful log entries for the habit within the date range (as a
+   * double value between 0.0 and 100.0)
+   * @throws SQLException if an error occurs while executing the database query
    */
   public double getSuccessPercentage(Habit habit, Date startDate, Date endDate) {
     String query = "SELECT * FROM postgres_schema.logs WHERE habit_id = ? AND log_date BETWEEN ? AND ?";
@@ -205,34 +212,34 @@ public class LogService {
           }
         }
       }
-
     } catch (SQLException e) {
       System.out.println("Ошибка получения процента успеха: " + e.getMessage());
     }
-
     if (totalLogs == 0) {
       return 0.0;
     }
     return (double) successfulLogs / totalLogs * 100;
   }
 
+  /**
+   * Adds a new log entry to the database.
+   *
+   * @param log the log entry to be added
+   * @throws SQLException if an error occurs while executing the database query
+   */
   public void addLog(Log log) {
     String query = "INSERT INTO postgres_schema.logs (log_date, completed, habit_id, user_id) VALUES (?, ?, ?, ?) RETURNING id";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         PreparedStatement statement = conn.prepareStatement(query)) {
-
-      // Set parameters for the prepared statement
       statement.setDate(1, new java.sql.Date(log.getLogDate().getTime()));
       statement.setBoolean(2, log.isCompleted());
       statement.setInt(3, log.getHabit().getId());
       statement.setInt(4, log.getUser().getId());
 
-      // Execute the update and retrieve the generated ID
       ResultSet rs = statement.executeQuery();
       if (rs.next()) {
         int generatedId = rs.getInt(1);
-        log.setId(generatedId);  // Assuming Log has a method to set its ID
-        // Optionally, you can add this log to your logs Map if you maintain it
+        log.setId(generatedId);
         logs.put(generatedId, log);
       }
     } catch (SQLException e) {
@@ -240,6 +247,13 @@ public class LogService {
     }
   }
 
+  /**
+   * Retrieves a list of log entries for the specified habit.
+   *
+   * @param habit the habit for which to retrieve log entries
+   * @return a list of log entries for the specified habit
+   * @throws SQLException if an error occurs while executing the database query
+   */
   public List<Log> getLogsByHabit(Habit habit) {
     List<Log> logsByHabit = new ArrayList<>();
     String query = "SELECT * FROM postgres_schema.logs WHERE habit_id = ?";

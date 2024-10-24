@@ -18,29 +18,25 @@ import org.example.grudapp.model.User;
  */
 public class HabitService {
 
-  /**
-   * Map of all habits. The key is the ID of the habit, and the value is the habit.
-   */
   private Map<Integer, Habit> habits = new HashMap<>();
-
-  /**
-   * Map of all users. The key is the ID of the user, and the value is the user.
-   *
-   * @return
-   */
   public Map<Integer, Habit> getHabits() {
     return habits;
   }
 
-  public void setHabits(Map<Integer, Habit> habits) {
-    this.habits = habits;
-  }
-
-  private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
+  private static final String URL = "jdbc:postgresql://postgres:5432/postgres?currentSchema=postgres_schema";
   private static final String USERNAME = "postgres";
   private static final String PASSWORD = "password";
 
-  // Method to create a new habit
+  /**
+   * Creates a new habit for the specified user.
+   *
+   * @param name        the name of the habit
+   * @param description the description of the habit
+   * @param frequency   the frequency of the habit
+   * @param user        the user who owns the habit
+   *
+   * @throws SQLException  if an error occurs while executing the database query
+   */
   public void createHabit(String name, String description, String frequency, User user) {
     String sql = "INSERT INTO postgres_schema.habits (name, description, frequency, user_id, creation_date) VALUES (?, ?, ?, ?, ?) RETURNING id";
 
@@ -50,22 +46,30 @@ public class HabitService {
       pstmt.setString(1, name);
       pstmt.setString(2, description);
       pstmt.setString(3, frequency);
-      pstmt.setLong(4, user.getId()); // Assuming User object has getId() method
+      pstmt.setLong(4, user.getId());
       pstmt.setTimestamp(5, new java.sql.Timestamp(System.currentTimeMillis()));
 
       ResultSet rs = pstmt.executeQuery();
       if (rs.next()) {
         int generatedId = rs.getInt(1);
         Habit habit = new Habit(generatedId, name, description, frequency, user, new Date());
-        user.getHabits().add(habit); // Add habit to user habits list
+        user.getHabits().add(habit);
       }
 
     } catch (SQLException e) {
-      System.out.println("Error while creating habit: " + e.getMessage());
+      System.out.println("Ошибка при создании привычки: " + e.getMessage());
     }
   }
 
-  // Get all habits for a user
+  /**
+   * Retrieves a list of habits for the specified user.
+   *
+   * @param user  the user for whom to retrieve habits
+   *
+   * @return a list of habits for the specified user
+   *
+   * @throws SQLException  if an error occurs while executing the database query
+   */
   public List<Habit> getHabitsByUser(User user) {
     List<Habit> result = new ArrayList<>();
     String sql = "SELECT * FROM postgres_schema.habits WHERE user_id = ?";
@@ -88,13 +92,21 @@ public class HabitService {
         result.add(habit);
       }
     } catch (SQLException e) {
-      System.out.println("Error while fetching habits: " + e.getMessage());
+      System.out.println("Ошибка при получении привычек: " + e.getMessage());
     }
-
     return result;
   }
 
-  // Update an existing habit
+  /**
+   * Updates an existing habit with the specified details.
+   *
+   * @param habitId  the ID of the habit to update
+   * @param name     the new name of the habit
+   * @param description  the new description of the habit
+   * @param frequency  the new frequency of the habit
+   *
+   * @throws SQLException  if an error occurs while executing the database query
+   */
   public void updateHabit(int habitId, String name, String description, String frequency) {
     String sql = "UPDATE postgres_schema.habits SET name = ?, description = ?, frequency = ?, creation_date = ? WHERE id = ?";
 
@@ -109,16 +121,17 @@ public class HabitService {
 
       pstmt.executeUpdate();
     } catch (SQLException e) {
-      System.out.println("Error while updating habit: " + e.getMessage());
+      System.out.println("Ошибка при обновлении привычки: " + e.getMessage());
     }
   }
 
   /**
-   * Deletes an existing habit.
+   * Deletes a habit with the specified ID from the database.
    *
-   * @param habitId the ID of the habit to delete
+   * @param habitId  the ID of the habit to delete
+   *
+   * @throws SQLException  if an error occurs while executing the database query
    */
-  // Delete an existing habit
   public void deleteHabit(int habitId) {
     String sql = "DELETE FROM postgres_schema.habits WHERE id = ?";
 
@@ -148,21 +161,28 @@ public class HabitService {
               int habitOwnerId = rs.getInt("user_id");
 
               if ("admin".equalsIgnoreCase(userRole) || habitOwnerId == userId) {
-                  // User is an admin or the owner of the habit
                   pstmtDelete.setInt(1, habitId);
                   pstmtDelete.executeUpdate();
-                  System.out.println("Habit deleted successfully.");
+                  System.out.println("Привычка успешно удалена.");
               } else {
-                  System.out.println("You do not have permission to delete this habit.");
+                  System.out.println("У вас нет разрешения на удаление этой привычки.");
               }
           } else {
-              System.out.println("Habit not found.");
+              System.out.println("Привычка не обнаружена.");
           }
 
       } catch (SQLException e) {
-          System.out.println("Error while deleting habit: " + e.getMessage());
+          System.out.println("Ошибка при удалении привычки: " + e.getMessage());
       }
   }*/
+
+  /**
+   * Saves a new habit to the database.
+   *
+   * @param habit  the habit to be saved
+   *
+   * @throws SQLException  if an error occurs while executing the database query
+   */
   public void saveHabit(Habit habit) {
     String sql = "INSERT INTO postgres_schema.habits (name, description, frequency, user_id, creation_date) VALUES (?, ?, ?, ?, ?) RETURNING id";
 
@@ -173,14 +193,14 @@ public class HabitService {
       pstmt.setString(2, habit.getDescription());
       pstmt.setString(3, habit.getFrequency());
       pstmt.setLong(4,
-          habit.getUser().getId()); // Предполагая, что у объекта Habit есть метод getUser()
+          habit.getUser().getId());
       pstmt.setTimestamp(5, new java.sql.Timestamp(System.currentTimeMillis()));
 
       ResultSet rs = pstmt.executeQuery();
       if (rs.next()) {
         int generatedId = rs.getInt(1);
-        habit.setId(generatedId); // Предполагая, что у объекта Habit есть метод setId()
-        habit.getUser().getHabits().add(habit); // Добавляем привычку в список привычек пользователя
+        habit.setId(generatedId);
+        habit.getUser().getHabits().add(habit);
       }
     } catch (SQLException e) {
       System.out.println("Ошибка сохранения привычки: " + e.getMessage());

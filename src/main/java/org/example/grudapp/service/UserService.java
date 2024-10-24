@@ -26,7 +26,7 @@ public class UserService {
   private Set<User> admins = new HashSet<>();
 
 
-  private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
+  private static final String URL = "jdbc:postgresql://postgres:5432/postgres?currentSchema=postgres_schema";
   private static final String USERNAME = "postgres";
   private static final String PASSWORD = "password";
 

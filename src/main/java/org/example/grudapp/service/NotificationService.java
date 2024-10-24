@@ -18,43 +18,12 @@ import org.example.grudapp.ui.EmailNotificationService;
  */
 public class NotificationService {
 
-  private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
+  private static final String URL = "jdbc:postgresql://postgres:5432/postgres?currentSchema=postgres_schema";
   private static final String USERNAME = "postgres";
   private static final String PASSWORD = "password";
-
-  public NotificationService(EmailNotificationService emailNotificationService) {
-    this.emailNotificationService = emailNotificationService;
-  }
-
-  /**
-   * Email notification service used to send notifications.
-   */
   private EmailNotificationService emailNotificationService;
-  /**
-   * Map of all notifications. The key is the ID of the notification, and the value is the
-   * notification.
-   */
   private Map<Integer, Notification> notifications = new HashMap<>();
 
-
-  /**
-   * Creates a new notification service with the given email notification service.
-   *
-   * @param emailNotificationService the email notification service to use
-   */
-  public NotificationService(EmailNotificationService emailNotificationService,
-      Connection connection) {
-    this.emailNotificationService = emailNotificationService;
-  }
-
-  /**
-   * Creates a new notification.
-   *
-   * @param notificationDate the date of the notification
-   * @param sent             indicates whether the notification has been sent
-   * @param user             the user who will receive the notification
-   * @param habit            the habit associated with the notification
-   */
   /**
    * Creates a new notification.
    *
@@ -77,6 +46,12 @@ public class NotificationService {
     }
   }
 
+  /**
+   * Returns the total number of notifications in the database.
+   *
+   * @return the number of notifications
+   * @throws SQLException if an error occurs while executing the database query
+   */
   public int getNotificationCount() {
     String query = "SELECT COUNT(*) FROM postgres_schema.notifications";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -91,7 +66,12 @@ public class NotificationService {
     return 0;
   }
 
-
+  /**
+   * Adds a new notification to the database.
+   *
+   * @param notification the notification to be added
+   * @throws SQLException if an error occurs while executing the database query
+   */
   public void addNotification(Notification notification) {
     String query = "INSERT INTO postgres_schema.notifications (notification_date, sent, user_id, habit_id) VALUES (?, ?, ?, ?)";
     try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -126,12 +106,10 @@ public class NotificationService {
         notification.setUser(new User(resultSet.getInt("user_id")));
         notification.setHabit(new Habit(resultSet.getInt("habit_id")));
 
-        // Проверяем, было ли уведомление уже отправлено
         if (!notification.isSent()) {
           emailNotificationService.sendNotification(notification.getUser().getEmail(),
               "Уведомление", "Выполняйте свою привычку!");
 
-          // Обновляем статус отправки
           query = "UPDATE postgres_schema.notifications SET sent = ? WHERE id = ?";
           try (PreparedStatement updateStatement = conn.prepareStatement(query)) {
             updateStatement.setBoolean(1, true);

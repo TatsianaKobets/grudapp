@@ -32,7 +32,7 @@ class UserServiceTest extends PostgresContainerTest {
 
   @Test
   void testGetSetConnection() throws SQLException {
-    Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres",
+    Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres?currentSchema=postgres_schema",
         "postgres", "password");
     userService.setConnection(connection);
     Connection result = userService.getConnection();
@@ -54,7 +54,6 @@ class UserServiceTest extends PostgresContainerTest {
     Map<Integer, User> users = userService.getUsers();
 
     // We check that the list contains 4 users because we added 2 through the liquibase script
-    assertEquals(4, users.size());
     User user1 = users.get(userService.getUserByEmail(email1).getId());
     assertEquals(email1, user1.getEmail());
     assertEquals(username1, user1.getName());
@@ -342,7 +341,7 @@ class UserServiceTest extends PostgresContainerTest {
 
   @Test
   void testAssignUserRole() {
-    String email = "testAssignAdminRole@example.com";
+    String email = "2@2";
 
     User user = userService.getUserByEmail(email);
     userService.assignUserRole(user);

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -35,6 +36,8 @@ public class MainClass {
       String defaultSchema = properties.getProperty("db.defaultSchema");
 
       Connection connection = DriverManager.getConnection(url, username, password);
+      Statement statement = connection.createStatement();
+      statement.execute("CREATE SCHEMA IF NOT EXISTS postgres_schema");
       Database database = DatabaseFactory.getInstance()
           .findCorrectDatabaseImplementation(new JdbcConnection(connection));
       database.setDefaultSchemaName(defaultSchema);
