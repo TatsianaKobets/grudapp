@@ -1,5 +1,6 @@
 package org.example.grudapp.ui;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,7 +35,8 @@ public class ConsoleInterface {
    * @param logService   LogService instance
    */
 
-  public ConsoleInterface(UserService userService, HabitService habitService, LogService logService) {
+  public ConsoleInterface(UserService userService, HabitService habitService,
+      LogService logService) {
     this.userService = userService;
     this.habitService = habitService;
     this.logService = logService;
@@ -45,13 +47,23 @@ public class ConsoleInterface {
    */
   public void run() {
     Scanner scanner = new Scanner(System.in);
-    while (true) {
+    boolean running = true;
+    while (running) {
       User currentUser = userService.getAuthenticatedUser(); // Получаем текущего аутентифицированного пользователя
       if (currentUser == null) {
         System.out.println("Вы не авторизованы. Выберите действие:");
         startPanel(scanner);
       } else {
-        userPanel(scanner); // Используем один метод, чтобы выводить меню пользователя
+        try {
+          userPanel(scanner); // Используем один метод, чтобы выводить меню пользователя
+        } catch (SQLException e) {
+          throw new RuntimeException(e);
+        }
+      }
+      System.out.print("Do you want to exit? (yes/no): ");
+      String input = scanner.next();
+      if (input.equalsIgnoreCase("yes")) {
+        running = false;
       }
     }
   }
@@ -62,21 +74,14 @@ public class ConsoleInterface {
     System.out.println("3. Выход");
     int choice = scanner.nextInt();
     switch (choice) {
-      case 1:
-        registerUser(scanner);
-        break;
-      case 2:
-        authenticateUser(scanner);
-        break;
-      case 3:
-        System.exit(0);
-        break;
-      default:
-        System.out.println("Неправильный выбор");
+      case 1 -> registerUser(scanner);
+      case 2 -> authenticateUser(scanner);
+      case 3 -> System.exit(0);
+      default -> System.out.println("Неправильный выбор");
     }
   }
 
-  private void userPanel(Scanner scanner) {
+  private void userPanel(Scanner scanner) throws SQLException {
     System.out.println("1. Изменить данные пользователя");
     System.out.println("2. Изменить email пользователя");
     System.out.println("3. Удалить пользователя");
@@ -89,38 +94,17 @@ public class ConsoleInterface {
     System.out.println("10. Выход");
     int choice = scanner.nextInt();
     switch (choice) {
-      case 1:
-        editUserProfile(scanner);
-        break;
-      case 2:
-        changeUserEmail(scanner);
-        break;
-      case 3:
-        deleteUser(scanner);
-        break;
-      case 4:
-        createHabit(scanner, userService.getAuthenticatedUser());
-        break;
-      case 5:
-        viewHabits(scanner, userService.getAuthenticatedUser());
-        break;
-      case 6:
-        deleteHabit(scanner);
-        break;
-      case 7:
-        createLog(scanner);
-        break;
-      case 8:
-        viewLogs();
-        break;
-      case 9:
-        deleteLog(scanner);
-        break;
-      case 10:
-        System.exit(0);
-        break;
-      default:
-        System.out.println("Неправильный выбор");
+      case 1 -> editUserProfile(scanner);
+      case 2 -> changeUserEmail(scanner);
+      case 3 -> deleteUser(scanner);
+      case 4 -> createHabit(scanner, userService.getAuthenticatedUser());
+      case 5 -> viewHabits(scanner, userService.getAuthenticatedUser());
+      case 6 -> deleteHabit(scanner);
+      case 7 -> createLog(scanner);
+      case 8 -> viewLogs();
+      case 9 -> deleteLog(scanner);
+      case 10 -> System.exit(0);
+      default -> System.out.println("Неправильный выбор");
     }
   }
 
@@ -139,32 +123,15 @@ public class ConsoleInterface {
     System.out.println("8. Выход");
     int choice = scanner.nextInt();
     switch (choice) {
-      case 1:
-        assignAdminRole(scanner);
-        break;
-      case 2:
-        assignUserRole(scanner);
-        break;
-      case 3:
-        blockUser(scanner);
-        break;
-      case 4:
-        adminDeletedUser(scanner);
-        break;
-      case 5:
-        viewAllAdmins(scanner);
-        break;
-      case 6:
-        viewAllUsers(scanner);
-        break;
-      case 7:
-        viewAllHabits(scanner);
-        break;
-      case 8:
-        System.exit(0);
-        break;
-      default:
-        System.out.println("Неправильный выбор");
+      case 1 -> assignAdminRole(scanner);
+      case 2 -> assignUserRole(scanner);
+      case 3 -> blockUser(scanner);
+      case 4 -> adminDeletedUser(scanner);
+      case 5 -> viewAllAdmins(scanner);
+      case 6 -> viewAllUsers(scanner);
+      case 7 -> viewAllHabits(scanner);
+      case 8 -> System.exit(0);
+      default -> System.out.println("Неправильный выбор");
     }
   }
 
@@ -319,16 +286,13 @@ public class ConsoleInterface {
     int choice = scanner.nextInt();
     String frequency = "";
     switch (choice) {
-      case 1:
-        frequency = "DAILY";
-        break;
-      case 2:
-        frequency = "WEEKLY";
-        break;
-      default:
+      case 1 -> frequency = "DAILY";
+      case 2 -> frequency = "WEEKLY";
+      default -> {
         System.out.println(
             "Неправильный выбор. Частота выполнения будет установлена как ежедневно.");
         frequency = "DAILY";
+      }
     }
 
     // Создание привычки с переданными параметрами
@@ -356,7 +320,7 @@ public class ConsoleInterface {
     List<Habit> filteredHabits = new ArrayList<>();
 
     switch (choice) {
-      case 1:
+      case 1 -> {
         System.out.println("Введите дату создания (например yyyy-MM-dd):");
         String creationDateString = scanner.next();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -374,7 +338,8 @@ public class ConsoleInterface {
         }
         habits = filteredHabits;
         break;
-      case 2:
+      }
+      case 2 -> {
         System.out.println("Введите статус (true/false):");
         boolean status = scanner.nextBoolean();
         filteredHabits.clear();
@@ -385,10 +350,8 @@ public class ConsoleInterface {
         }
         habits = filteredHabits;
         break;
-      case 3:
-        break;
-      default:
-        System.out.println("Неправильный выбор. Просмотр привычек без фильтрации.");
+      }
+      default -> System.out.println("Неправильный выбор. Просмотр привычек без фильтрации.");
     }
 
     System.out.println("Ваши привычки:");
@@ -398,7 +361,7 @@ public class ConsoleInterface {
     }
   }
 
-  private void deleteHabit(Scanner scanner) {
+  private void deleteHabit(Scanner scanner) throws SQLException {
     System.out.println("Введите ID привычки:");
     int habitId = scanner.nextInt();
     habitService.deleteHabit(habitId);
@@ -497,17 +460,10 @@ public class ConsoleInterface {
     int choice = scanner.nextInt();
 
     switch (choice) {
-      case 1:
-        viewStreak(scanner);
-        break;
-      case 2:
-        viewSuccessPercentage(scanner);
-        break;
-      case 3:
-        viewProgressReport(scanner);
-        break;
-      default:
-        System.out.println("Неправильный выбор");
+      case 1 -> viewStreak(scanner);
+      case 2 -> viewSuccessPercentage(scanner);
+      case 3 -> viewProgressReport(scanner);
+      default -> System.out.println("Неправильный выбор");
     }
   }
 

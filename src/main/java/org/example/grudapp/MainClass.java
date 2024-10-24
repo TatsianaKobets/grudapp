@@ -1,18 +1,9 @@
 package org.example.grudapp;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Properties;
-import liquibase.Liquibase;
-import liquibase.database.Database;
-import liquibase.database.DatabaseFactory;
-import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
-import liquibase.resource.ClassLoaderResourceAccessor;
+import org.example.grudapp.config.DatabaseManager;
+import org.example.grudapp.repository.HabitRepository;
 import org.example.grudapp.service.HabitService;
 import org.example.grudapp.service.LogService;
 import org.example.grudapp.service.UserService;
@@ -21,39 +12,17 @@ import org.example.grudapp.ui.ConsoleInterface;
 public class MainClass {
 
   public static void main(String[] args) {
-    Properties properties = new Properties();
-    try (InputStream input = MainClass.class.getClassLoader()
-        .getResourceAsStream("config.properties")) {
-      if (input == null) {
-        System.out.println("Sorry, unable to find config.properties");
-        return;
-      }
-
-      properties.load(input);
-      String url = properties.getProperty("db.url");
-      String username = properties.getProperty("db.username");
-      String password = properties.getProperty("db.password");
-      String defaultSchema = properties.getProperty("db.defaultSchema");
-
-      Connection connection = DriverManager.getConnection(url, username, password);
-      Statement statement = connection.createStatement();
-      statement.execute("CREATE SCHEMA IF NOT EXISTS postgres_schema");
-      Database database = DatabaseFactory.getInstance()
-          .findCorrectDatabaseImplementation(new JdbcConnection(connection));
-      database.setDefaultSchemaName(defaultSchema);
-      Liquibase liquibase = new Liquibase("db/changelog/changelog.xml",
-          new ClassLoaderResourceAccessor(), database);
-      liquibase.update();
-      System.out.println("Migration is completed successfully");
-
+    try {
+      DatabaseManager.migrate();
+      HabitRepository habitRepository = new HabitRepository();
       UserService userService = new UserService();
-      HabitService habitService = new HabitService();
+      HabitService habitService = new HabitService(habitRepository);
       LogService logService = new LogService();
       ConsoleInterface consoleInterface = new ConsoleInterface(userService, habitService,
           logService);
       consoleInterface.run();
 
-    } catch (SQLException | LiquibaseException | IOException e) {
+    } catch (SQLException | LiquibaseException e) {
       System.out.println("Error: " + e.getMessage());
       throw new RuntimeException(e);
     }
