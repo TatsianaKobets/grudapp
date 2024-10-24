@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd"
+  logicalFilePath="db/changelog.xml">
+  <changeSet id="012-insert-data-notifications" author="tatsiana_kobets">
+    <insert schemaName="postgres_schema" tableName="notifications">
+      <column name="id" valueNumeric="1"/>
+      <column name="notification_date" valueDate="2024-10-01"/>
+      <column name="sent" valueBoolean="false"/>
+      <column name="user_id" valueNumeric="1"/>
+      <column name="habit_id" valueNumeric="1"/>
+    </insert>
+    <insert schemaName="postgres_schema" tableName="notifications">
+      <column name="id" valueNumeric="2"/>
+      <column name="notification_date" valueDate="2024-10-02"/>
+      <column name="sent" valueBoolean="false"/>
+      <column name="user_id" valueNumeric="2"/>
+      <column name="habit_id" valueNumeric="2"/>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

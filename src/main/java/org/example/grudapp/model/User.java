@@ -11,7 +11,7 @@ public class User {
   /**
    * Unique identifier for the user.
    */
-  private final int id;
+  private int id;
   /**
    * Email address of the user.
    */
@@ -45,6 +45,8 @@ public class User {
     this.id = id;
   }
 
+  public User() {
+  }
   /**
    * Constructs a User object with the given parameters.
    *
@@ -80,6 +82,21 @@ public class User {
     this.habits = new ArrayList<>();
     this.logs = new ArrayList<>();
   }
+  /**
+   * Constructs a User object with the given parameters.
+   *
+   * @param email    the email address of the user
+   * @param password the password of the user
+   * @param name     the name of the user
+   */
+  public User(String email, String password, String name) {
+    this.email = email;
+    this.password = password;
+    this.name = name;
+    this.habits = new ArrayList<>();
+    this.logs = new ArrayList<>();
+  }
+
 
   /**
    * Returns the unique ID for the user.
@@ -90,6 +107,9 @@ public class User {
     return id;
   }
 
+  public void setId(int id) {
+    this.id = id;
+  }
   /**
    * Returns the email address of the user.
    *

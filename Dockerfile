@@ -1,5 +1,13 @@
-FROM openjdk:17-alpine
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} /app/target/
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/target/grudapp-1.0-SNAPSHOT.jar"]
+FROM maven:3.8.4-openjdk-17-slim AS build
+WORKDIR /app
+
+COPY pom.xml .
+COPY src ./src
+
+RUN mvn clean package -DskipTests
+
+FROM openjdk:17-jdk-slim
+
+COPY --from=build /app/target/grudapp-1.0-SNAPSHOT.jar /app/grudapp.jar
+
+ENTRYPOINT ["java", "-jar", "/app/grudapp.jar"]

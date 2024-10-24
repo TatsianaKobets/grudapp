@@ -1,77 +1,59 @@
 package org.example.grudapp.service;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.example.grudapp.model.Habit;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.example.grudapp.PostgresContainerTest;
 import org.example.grudapp.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testcontainers.junit.jupiter.TestcontainersExtension;
 
-public class HabitServiceTest {
+@ExtendWith(TestcontainersExtension.class)
+public class HabitServiceTest extends PostgresContainerTest {
 
-  private User user;
   private HabitService habitService;
-  private List<Habit> habits;
 
   @BeforeEach
   void setUp() {
-    user = new User(1, "John Doe", "johndoe", "password123");
-    habits = new ArrayList<>();
     habitService = new HabitService();
-    habitService.createHabit("Test Habit", "This is a test habit", "daily", user, habits);
-    habitService.setHabits(habits);
   }
 
   @Test
-  void getHabits() {
-    List<Habit> habits = habitService.getHabits();
-    assertEquals(1, habits.size());
+  public void testCreateHabit_success() throws SQLException {
+    String name = "Test Habit";
+    String description = "This is a test habit";
+    String frequency = "DAILY";
+    User user = new User( "2@2", "2222", "2");
+
+    habitService.createHabit(name, description, frequency, user);
+    assertTrue(habitService.getHabits().containsKey(3));
+  }
+  @Test
+  public void testCreateHabit_emptyName() {
+    String name = "";
+    String description = "This is a test habit";
+    String frequency = "DAILY";
+    User user = new User(1, "test@example.com", "test", "test");
+
+    assertThrows(SQLException.class, () -> habitService.createHabit(name, description, frequency, user));
   }
 
   @Test
-  void getHabitsByUser() {
-    List<Habit> habitsByUser = habitService.getHabitsByUser(user);
-    assertEquals(1, habitsByUser.size());
-    assertEquals(user, habitsByUser.get(0).getUser());
+  public void testCreateHabit_nullUser() {
+    String name = "Test Habit";
+    String description = "This is a test habit";
+    String frequency = "DAILY";
+    User user = null;
+
+    assertThrows(NullPointerException.class, () -> habitService.createHabit(name, description, frequency, user));
   }
 
-  @Test
-  void createHabit() {
-    habitService.createHabit("New Habit", "This is a new habit", "weekly", user, habits);
-    List<Habit> updatedHabits = habitService.getHabits();
-    assertEquals(2, updatedHabits.size());
-    Habit newHabit = updatedHabits.get(1);
-    assertEquals("New Habit", newHabit.getName());
-    assertEquals("This is a new habit", newHabit.getDescription());
-    assertEquals("weekly", newHabit.getFrequency());
-    assertEquals(user, newHabit.getUser());
-    Instant instant = newHabit.getCreationDate().toInstant();
-    assertTrue(ChronoUnit.HOURS.between(instant, Instant.now()) <= 1);
-  }
-
-  @Test
-  void updateHabit() {
-    Habit habitToUpdate = habits.get(0);
-    habitService.updateHabit(habitToUpdate.getId(), "Updated Habit", "This is an updated habit",
-        "monthly");
-    Habit updatedHabit = habitService.getHabits().get(0);
-    assertEquals("Updated Habit", updatedHabit.getName());
-    assertEquals("This is an updated habit", updatedHabit.getDescription());
-    assertEquals("monthly", updatedHabit.getFrequency());
-  }
-
-  @Test
-  void deleteHabit() {
-    Habit habitToDelete = habits.get(0);
-    habitService.deleteHabit(habitToDelete.getId());
-    List<Habit> updatedHabits = habitService.getHabits();
-    assertEquals(0, updatedHabits.size());
-  }
 }

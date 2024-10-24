@@ -10,11 +10,11 @@ public class Notification {
   /**
    * Unique identifier for the notification.
    */
-  private final int id;
+  private int id;
   /**
    * Date of the notification.
    */
-  private final Date notificationDate;
+  private Date notificationDate;
   /**
    * Indicates whether the notification has been sent.
    */
@@ -24,6 +24,9 @@ public class Notification {
    */
   private User user;
   private Habit habit;
+
+  public Notification() {
+  }
 
   /**
    * Constructs a Notification object with the given parameters.
@@ -51,6 +54,9 @@ public class Notification {
     return id;
   }
 
+  public void setId(int id) {
+    this.id = id;
+  }
   /**
    * Returns the date of the notification.
    *
@@ -60,6 +66,9 @@ public class Notification {
     return notificationDate;
   }
 
+  public void setNotificationDate(Date notificationDate) {
+    this.notificationDate = notificationDate;
+  }
   /**
    * Returns whether the notification has been sent.
    *

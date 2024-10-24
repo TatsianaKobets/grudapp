@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd"
+  logicalFilePath="db/changelog.xml">
+  <changeSet id="005-insert-data-habits" author="tatsiana_kobets">
+    <insert schemaName="postgres_schema" tableName="habits">
+      <column name="id" valueNumeric="1"/>
+      <column name="name" value="Чтение"/>
+      <column name="description" value="Читать книги каждый день"/>
+      <column name="frequency" value="daily"/>
+      <column name="user_id" valueNumeric="1"/>
+      <column name="creation_date" valueDate="2024-10-01T00:00:00"/>
+    </insert>
+    <insert schemaName="postgres_schema" tableName="habits">
+      <column name="id" valueNumeric="2"/>
+      <column name="name" value="Спорт"/>
+      <column name="description" value="Участвовать в спортивных занятиях три раза в неделю"/>
+      <column name="frequency" value="weekly"/>
+      <column name="user_id" valueNumeric="2"/>
+      <column name="creation_date" valueDate="2024-10-01T00:00:00"/>
+    </insert>
+  </changeSet>
+</databaseChangeLog>
