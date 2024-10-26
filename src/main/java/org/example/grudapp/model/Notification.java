@@ -44,7 +44,12 @@ public class Notification {
     this.user = user;
     this.habit = habit;
   }
-
+  public Notification(Date notificationDate, boolean sent, User user, Habit habit) {
+    this.notificationDate = notificationDate;
+    this.sent = sent;
+    this.user = user;
+    this.habit = habit;
+  }
   /**
    * Returns the unique ID for the notification.
    *

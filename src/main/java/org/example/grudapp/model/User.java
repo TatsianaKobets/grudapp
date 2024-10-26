@@ -1,7 +1,9 @@
 package org.example.grudapp.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a user in the system.
@@ -40,6 +42,7 @@ public class User {
    * Role of the user (ADMIN or USER).
    */
   private Role role;
+  public Map<Integer, User> users = new HashMap<>();
 
   public User(int id) {
     this.id = id;
@@ -201,5 +204,13 @@ public class User {
    */
   public void setRole(Role role) {
     this.role = role;
+  }
+
+  public Map<Integer, User> getUsers() {
+    return users;
+  }
+
+  public void setUsers(Map<Integer, User> users) {
+    this.users = users;
   }
 }

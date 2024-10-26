@@ -25,8 +25,8 @@ public class HabitService {
     this.habitRepository = habitRepository;
   }
 
-  public void createHabit(String name, String description, String frequency, User user) {
-    habitRepository.createHabit(name, description, frequency, user);
+  public void createHabit(String name, String description, String frequency) {
+    habitRepository.createHabit(name, description, frequency);
   }
 
   public List<Habit> getHabitsByUser(User user) {
